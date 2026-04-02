@@ -11,6 +11,9 @@ export enum ErrorCode {
    RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND",
    INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR",
    RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED",
+   RESOURCE_NOT_INITIALIZED = "RESOURCE_NOT_INITIALIZED",
+   JSON_WEB_TOKEN_ERROR = "JSON_WEB_TOKEN_ERROR",
+   UNAUTHORIZED = "UNAUTHORIZED",
 }
 
 export enum ErrorHttpStatusCode {
@@ -19,6 +22,9 @@ export enum ErrorHttpStatusCode {
    RESOURCE_NOT_FOUND = 404,
    INTERNAL_SERVER_ERROR = 500,
    RATE_LIMIT_EXCEEDED = 429,
+   RESOURCE_NOT_INITIALIZED = 500,
+   JSON_WEB_TOKEN_ERROR = 401,
+   UNAUTHORIZED = 401,
 }
 
 /**
@@ -75,6 +81,16 @@ export class ResourceNotFoundError extends CustomError {
 }
 
 /**
+ * Error caused by unauthorized access to a resource or action, typically due to missing or invalid authentication credentials.
+ * @extends CustomError
+ */
+export class UnauthorizedError extends CustomError {
+   constructor(message = "Unauthorized") {
+      super(message, ErrorHttpStatusCode.UNAUTHORIZED, ErrorCode.UNAUTHORIZED);
+   }
+}
+
+/**
  * Error caused by exceeding the allowed number of requests in a given time frame.
  * @extends CustomError
  */
@@ -91,5 +107,24 @@ export class RateLimitExceededError extends CustomError {
 export class InternalServerError extends CustomError {
    constructor(message = "Internal server error") {
       super(message, ErrorHttpStatusCode.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_SERVER_ERROR);
+   }
+}
+
+/**
+ * Error caused when a required resource or dependency is not properly initialized before use.
+ * @extends CustomError
+ */
+export class ResourceNotInitializedError extends CustomError {
+   constructor(message = "Resource not initialized") {
+      super(message, ErrorHttpStatusCode.RESOURCE_NOT_INITIALIZED, ErrorCode.RESOURCE_NOT_INITIALIZED);
+   }
+}
+/**
+ * Error caused by issues related to JSON Web Tokens, such as invalid or expired tokens.
+ * @extends CustomError
+ */
+export class JsonWebTokenError extends CustomError {
+   constructor(message = "Invalid JSON Web Token") {
+      super(message, ErrorHttpStatusCode.JSON_WEB_TOKEN_ERROR, ErrorCode.JSON_WEB_TOKEN_ERROR);
    }
 }

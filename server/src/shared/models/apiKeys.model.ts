@@ -147,4 +147,3 @@ type ApiKey = InferSchemaType<typeof ApiKeySchema>;
 export type ApiKeyDocument = HydratedDocument<ApiKey>;
 
 export const ApiKeyModel = mongoose.model("ApiKey", ApiKeySchema);
-

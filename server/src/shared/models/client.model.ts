@@ -107,4 +107,3 @@ type Client = InferSchemaType<typeof clientSchema>;
 export type ClientDocument = HydratedDocument<Client>;
 
 export const ClientModel = mongoose.model("Client", clientSchema);
-

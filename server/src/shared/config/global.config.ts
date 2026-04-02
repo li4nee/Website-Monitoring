@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { url } from "node:inspector";
+import { StringValue } from "ms";
 dotenv.config();
 
 /**
@@ -13,7 +13,7 @@ export const globalConfig = {
    // JWT
    jwt: {
       secret: process.env.JWT_SECRET || "1234567890@abcdefg",
-      expiresIn: process.env.JWT_EXPIRES_IN || "12h",
+      expiresIn: (process.env.JWT_EXPIRES_IN || "12h") as StringValue,
    },
 
    // rateLimit
@@ -30,7 +30,7 @@ export const globalConfig = {
    },
 
    //postgresql
-   
+
    postgres: {
       host: process.env.POSTGRES_HOST || "postgres",
       port: parseInt(process.env.POSTGRES_PORT || "5432", 10),
@@ -50,5 +50,12 @@ export const globalConfig = {
       publisherConfirm: process.env.RABBITMQ_PUBLISHER_CONFIRM === "true" || false, // confirms need garne ki nagarne pako
       retryAttempts: parseInt(process.env.RABBITMQ_RETRY_ATTEMPTS || "3", 10),
       retryDelay: parseInt(process.env.RABBITMQ_RETRY_DELAY || "1000", 10), // ms ma ho yo
+   },
+
+   cookieOptions: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      maxAge: parseInt(process.env.COOKIE_MAX_AGE || `${8 * 60 * 60 * 1000}`, 10),
    },
 };

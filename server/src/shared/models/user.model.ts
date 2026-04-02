@@ -1,11 +1,7 @@
-import mongoose, { HydratedDocument, InferSchemaType } from "mongoose";
+import mongoose, { HydratedDocument, InferSchemaType, Model } from "mongoose";
 import { PasswordUtils } from "../utils/password.utils";
 import { USER_ROLE } from "../typings/base.typings";
 
-/**S
- * @description User model
- * @property {string} username - The username of the user , uniqie and required
- */
 const userSchema = new mongoose.Schema(
    {
       username: {
@@ -119,7 +115,7 @@ const userSchema = new mongoose.Schema(
    },
 );
 
-type User = InferSchemaType<typeof userSchema>;
+export type User = InferSchemaType<typeof userSchema>;
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -129,8 +125,8 @@ userSchema.pre("save", async function (this: UserDocument) {
    this.password = await PasswordUtils.hashPassword(this.password);
 });
 
-// Instead of single index on each of 3 use combined index for better performance, as we will be querying based on clientId and isActive together most of the time, and role and isActive together most of the time
-userSchema.index({clientId:1,isActive:1})
-userSchema.index({role:1,isActive:1})
+// Most of the time they are queried together. So makes sense indexing them together.
+userSchema.index({ clientId: 1, isActive: 1 });
+userSchema.index({ role: 1, isActive: 1 });
 
-export const UserModel = mongoose.model<User>("User", userSchema);
+export const UserModel: Model<User> = mongoose.model<User>("User", userSchema);
