@@ -43,18 +43,14 @@ if (globalConfig.node_env !== "production") {
 }
 
 export const requestLogger = winston.createLogger({
-  level: "info",
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.printf(
-      ({ timestamp, message, ...meta }) =>
-        `[${timestamp}] ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ""}`
-    )
-  ),
-  transports: [
-    new winston.transports.File({ filename: "logs/requests.log" }),
-  ],
+   level: "info",
+   format: winston.format.combine(
+      winston.format.timestamp(),
+      winston.format.printf(
+         ({ timestamp, message, ...meta }) => `[${timestamp}] ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ""}`,
+      ),
+   ),
+   transports: [new winston.transports.File({ filename: "logs/requests.log" })],
 });
-
 
 export default logger;

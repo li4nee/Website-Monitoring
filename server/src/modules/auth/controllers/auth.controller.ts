@@ -1,9 +1,7 @@
-import { User } from "../../../shared/models/user.model";
 import { AuthorizedRequest } from "../../../shared/typings/base.typings";
 import { PermissionNotGranted, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { CookieUtils } from "../../../shared/utils/cookie.utils";
 import { ResponseFormatter } from "../../../shared/utils/responseFormatter.utils";
-import { SuperAdminOnboardingDto } from "../dtos/onboarding.dto";
 import { AuthService } from "../services/auth.service";
 import type { NextFunction, Request, Response } from "express";
 
@@ -18,7 +16,7 @@ export class AuthController {
 
    async onboardSuperAdmin(req: Request, res: Response, next: NextFunction) {
       try {
-         const validatedUser = req.body
+         const validatedUser = req.body;
          const result = await this.authService.onboardSuperAdmin(validatedUser);
          const token = result.token;
          CookieUtils.setCookie(res, "authToken", token);
@@ -30,7 +28,7 @@ export class AuthController {
 
    async register(req: Request, res: Response, next: NextFunction) {
       try {
-         const validatedUser = req.body
+         const validatedUser = req.body;
          const result = await this.authService.register(validatedUser);
          return res.status(201).json(ResponseFormatter.success("User registered successfully", 201, { user: result }));
       } catch (error) {
@@ -40,7 +38,7 @@ export class AuthController {
 
    async login(req: Request, res: Response, next: NextFunction) {
       try {
-         const validatedUser = req.body
+         const validatedUser = req.body;
          const result = await this.authService.login(validatedUser);
          const token = result.token;
          CookieUtils.setCookie(res, "authToken", token);
@@ -50,8 +48,7 @@ export class AuthController {
       }
    }
 
-   async profile ( req:AuthorizedRequest,res: Response, next: NextFunction)
-   {
+   async profile(req: AuthorizedRequest, res: Response, next: NextFunction) {
       try {
          if (!req.user || !req.user.id) {
             throw new PermissionNotGranted("User information is missing in the request");
@@ -72,4 +69,3 @@ export class AuthController {
       }
    }
 }
-

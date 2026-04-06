@@ -30,10 +30,10 @@ export class JwtUtils {
       }
    }
 
-   static decodeToken(token: string,secret:string): JwtPayload | null {
+   static decodeToken(token: string, secret: string): JwtPayload | null {
       let maskedPayload: MaskedJwtPayload | null = null;
       try {
-         maskedPayload = this.verifyToken(token,secret) as MaskedJwtPayload;
+         maskedPayload = this.verifyToken(token, secret) as MaskedJwtPayload;
       } catch (error) {
          return null;
       }
@@ -63,4 +63,3 @@ export class JwtUtils {
       return perms as Permissions;
    }
 }
-

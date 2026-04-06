@@ -32,6 +32,6 @@ router.post("/login", validateBody(LoginDTO), (req: Request, res: Response, next
 
 router.get("/profile", authenticate, (req: Request, res: Response, next: NextFunction) => authController.profile(req, res, next));
 
-router.post("/logout", authenticate, (req: Request, res: Response,next: NextFunction) => authController.logout(req, res, next));
+router.post("/logout", authenticate, (req: Request, res: Response, next: NextFunction) => authController.logout(req, res, next));
 
 export default router;

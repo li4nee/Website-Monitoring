@@ -158,9 +158,8 @@ export class AuthService {
       }
    }
 
-   async getProfile(userId:string): Promise<Omit<User, "password">> 
-   {
-      const user = await this.userRepo.findById(userId) as UserDocument;
+   async getProfile(userId: string): Promise<Omit<User, "password">> {
+      const user = (await this.userRepo.findById(userId)) as UserDocument;
       if (!user) {
          logger.warn(`User not found for profile: ${userId}`);
          throw new PermissionNotGranted("User not found.");

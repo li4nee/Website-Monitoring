@@ -30,6 +30,6 @@ export const SuperAdminOnboardingDto = OnboardingBaseDto.extend({
 export type SuperAdminOnboardingDtoType = z.infer<typeof SuperAdminOnboardingDto>;
 
 export const RegistrationDTO = OnboardingBaseDto.extend({
-   role: z.enum(USER_ROLE)
+   role: z.enum(USER_ROLE),
 });
 export type RegistrationDTOType = z.infer<typeof RegistrationDTO>;
