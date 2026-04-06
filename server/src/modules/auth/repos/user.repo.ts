@@ -95,13 +95,11 @@ export class MongoUserRepo extends UserBaseRepo<User> {
       }
    }
 
-   async findIfAnyExists(isSuperAdmin:boolean,email:string): Promise<boolean> {
+   async findIfAnyExists(isSuperAdmin: boolean, email: string): Promise<boolean> {
       try {
          let doc = null;
-         if(isSuperAdmin)
-            doc = await this.model.findOne({}, { _id: 1 });
-         if(email)
-            doc = await this.model.findOne({email},{_id:1});
+         if (isSuperAdmin) doc = await this.model.findOne({}, { _id: 1 });
+         if (email) doc = await this.model.findOne({ email }, { _id: 1 });
          return !!doc;
       } catch (error) {
          logger.error(`Error checking if any users exist: ${error}`);

@@ -48,7 +48,7 @@ export interface JwtPayload {
    id: string;
    role: USER_ROLE;
    permissions: Permissions;
-   clientId?: string; 
+   clientId?: string;
 }
 
 export interface MaskedJwtPayload extends Omit<JwtPayload, "permissions"> {
