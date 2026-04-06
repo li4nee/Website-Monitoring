@@ -143,7 +143,7 @@ ApiKeySchema.index({ clientId: 1, isActive: 1 });
 ApiKeySchema.index({ keyValue: 1, isActive: 1 });
 ApiKeySchema.index({ environment: 1, clientId: 1 });
 
-type ApiKey = InferSchemaType<typeof ApiKeySchema>;
+export type ApiKey = InferSchemaType<typeof ApiKeySchema>;
 export type ApiKeyDocument = HydratedDocument<ApiKey>;
 
 export const ApiKeyModel = mongoose.model("ApiKey", ApiKeySchema);
