@@ -19,7 +19,6 @@ const clientSchema = new mongoose.Schema(
       email: {
          type: String,
          required: true,
-         unique: true,
          trim: true,
          lowercase: true,
          validate: {
@@ -91,7 +90,6 @@ const clientSchema = new mongoose.Schema(
    },
 );
 
-clientSchema.index({ email: 1 });
 clientSchema.index({ slug: 1 });
 clientSchema.index({ isActive: 1 });
 

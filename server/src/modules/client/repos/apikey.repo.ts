@@ -1,17 +1,13 @@
-import { Document, Types, DefaultTimestampProps, DefaultSchemaOptions } from "mongoose";
 import logger from "../../../shared/config/logger.config";
 import { ApiKeyDocument, ApiKeyModel } from "../../../shared/models/apiKeys.model";
-import { DEVELOPMENT_ENVIRONMENT } from "../../../shared/typings/base.typings";
 import { ApiKeyBaseRepo } from "./apiKeyBase.repo";
 
 export class MongoApiKeyRepo extends ApiKeyBaseRepo<ApiKeyDocument> {
-   constructor() {
-      super(ApiKeyModel);
-   }
+   private model = ApiKeyModel;
 
    async create(data: Partial<ApiKeyDocument>): Promise<ApiKeyDocument> {
       try {
-         const apiKey = await this.model.save(data);
+         const apiKey = await this.model.create(data);
          logger.info(`API key created: ${apiKey._id}`);
          return apiKey;
       } catch (error) {

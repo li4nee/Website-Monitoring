@@ -28,11 +28,14 @@ export enum HTTP_METHODS {
 }
 
 export interface AuthorizedRequest extends Request {
-   user?: {
-      id: string;
-      role: USER_ROLE;
-      permissions: Permissions;
-   };
+   user?: UserInsideAuthorizedRequest;
+}
+
+export interface UserInsideAuthorizedRequest {
+   id: string;
+   role: USER_ROLE;
+   permissions: Permissions;
+   clientId?: string;
 }
 
 export type Permissions = {

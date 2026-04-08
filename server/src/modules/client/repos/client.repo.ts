@@ -7,9 +7,7 @@ import logger from "../../../shared/config/logger.config";
  * It extends ClientBaseRepo and implements create, update, delete, and fetch methods.
  */
 export class MongoClientRepo extends ClientBaseRepo<ClientDocument> {
-   constructor() {
-      super(ClientModel);
-   }
+   private model = ClientModel;
 
    async create(data: Partial<ClientDocument>): Promise<ClientDocument> {
       try {
@@ -47,12 +45,24 @@ export class MongoClientRepo extends ClientBaseRepo<ClientDocument> {
       }
    }
 
-   async findById(id: string): Promise<ClientDocument | null> {
+   async findById(id: string, includeOnlyId: boolean = false): Promise<ClientDocument | null> {
       try {
-         const client = await this.model.findById(id);
+         const selectFields = includeOnlyId ? "_id" : "-__v";
+         const client = await this.model.findById(id).select(selectFields);
          return client;
       } catch (error) {
          logger.error(`Error finding client by ID: ${id}`, { error });
+         throw error;
+      }
+   }
+
+   async findBySlug(slug: string, includeOnlyId: boolean): Promise<ClientDocument | null> {
+      try {
+         const selectFields = includeOnlyId ? "_id" : "-__v";
+         const client = await this.model.findOne({ slug }).select(selectFields);
+         return client;
+      } catch (error) {
+         logger.error(`Error finding client by slug: ${slug}`, { error });
          throw error;
       }
    }

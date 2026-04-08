@@ -1,4 +1,4 @@
-import mongoose, { HydratedDocument, InferSchemaType, Model } from "mongoose";
+import mongoose, { HydratedDocument, InferSchemaType, Model, Types } from "mongoose";
 import { PasswordUtils } from "../utils/password.utils";
 import { USER_ROLE } from "../typings/base.typings";
 
@@ -116,7 +116,7 @@ const userSchema = new mongoose.Schema(
 );
 
 export type User = InferSchemaType<typeof userSchema>;
-
+export type UserWithId = User & { _id: Types.ObjectId };
 export type UserDocument = HydratedDocument<User>;
 
 userSchema.pre("save", async function (this: UserDocument) {

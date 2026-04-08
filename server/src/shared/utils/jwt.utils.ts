@@ -40,14 +40,16 @@ export class JwtUtils {
       if (!maskedPayload || typeof maskedPayload === "string") {
          return null;
       }
-      const { id, role, permissions } = maskedPayload;
+      const { id, role, permissions, clientId } = maskedPayload;
       return {
          id,
          role,
          permissions: this.unmaskPermissions(permissions),
+         clientId: clientId,
       };
    }
 
+   // TODO : Learn what's going on and try optimize it.
    private static maskPermissions(permissions: Permissions): number {
       return this.PERMISSION_FLAGS.reduce((mask, key, index) => {
          return mask | ((permissions[key] ? 1 : 0) << (this.PERMISSION_FLAGS.length - 1 - index));

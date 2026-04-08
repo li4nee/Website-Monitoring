@@ -1,4 +1,5 @@
-import { UserDocument } from "../../../shared/models/user.model";
+import { User, UserWithId } from "../../../shared/models/user.model";
+import { Types } from "mongoose";
 
 export class UserResponseDto {
    id: string;
@@ -6,7 +7,7 @@ export class UserResponseDto {
    username?: string;
    role: string;
 
-   constructor(user: UserDocument) {
+   constructor(user: UserWithId) {
       this.id = user._id.toString();
       this.email = user.email;
       this.username = user.username;
