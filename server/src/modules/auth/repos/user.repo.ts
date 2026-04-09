@@ -25,7 +25,7 @@ export class MongoUserRepo extends UserBaseRepo<UserWithId> {
    }
 
    private async findOneBy(filter: Partial<User>, includeOnlyId = false): Promise<UserWithId | null> {
-      const selectFields = includeOnlyId ? "_id" : "-password -__v";
+      const selectFields = includeOnlyId ? "_id" : "-__v";
       const doc = await this.model.findOne(filter).select(selectFields);
       return doc ? (doc.toObject() as UserWithId) : null;
    }
