@@ -16,7 +16,7 @@ export function authenticate(req: AuthorizedRequest, res: Response, next: NextFu
       req.user = decoded;
       next();
    } catch (error) {
-      logger.error("Authentication error:", error);
+      logger.error("[Authenticate] Authentication error:", error);
       throw new UnauthorizedError("Failed to authenticate token");
    }
 }

@@ -20,7 +20,7 @@ export class MongoUserRepo extends UserBaseRepo<UserWithId> {
 
       const created = await this.model.create(userData);
 
-      logger.info(`User created with id: ${created._id} and email: ${created.email}`);
+      logger.info(`[MongoUserRepo] User created with id: ${created._id} and email: ${created.email}`);
       return created.toObject() as UserWithId;
    }
 
@@ -51,7 +51,7 @@ export class MongoUserRepo extends UserBaseRepo<UserWithId> {
 
    async delete(id: string): Promise<void> {
       await this.model.findByIdAndDelete(id);
-      logger.info(`User deleted: ${id}`);
+      logger.info(`[MongoUserRepo] User deleted: ${id}`);
    }
 
    async findIfAnyExistsAndReturnsCount(filter: Partial<User>): Promise<number> {

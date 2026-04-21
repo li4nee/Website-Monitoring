@@ -30,7 +30,7 @@ export class MongoApiKeyRepo extends ApiKeyBaseRepo<ApiKeyWithId> {
    async findById(id: string): Promise<ApiKeyWithId | null> {
       try {
          const apiKey = await this.model.findById(id).select("-__v -keyValue").populate("clientId", "name slug");
-         return apiKey ? apiKey.toObject() as ApiKeyWithId | null : null;
+         return apiKey ? (apiKey.toObject() as ApiKeyWithId | null) : null;
       } catch (error) {
          logger.error(`Error finding API key by id: ${id}`, { error });
          throw error;

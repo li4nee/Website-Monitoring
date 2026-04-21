@@ -19,7 +19,7 @@ export class GlobalErrorHandler {
       };
 
       if (err instanceof CustomError) {
-         logger.error("Operational error", {
+         logger.error("[GlobalErrorHandler] Operational error", {
             ...logContext,
             errorCode: err.errorCode,
          });
@@ -31,7 +31,7 @@ export class GlobalErrorHandler {
 
       // Mainly postgres errors
       if (err.code === "23505") {
-         logger.warn("Database unique constraint violation", logContext);
+         logger.warn("[GlobalErrorHandler] Database unique constraint violation", logContext);
 
          return res
             .status(409)
@@ -39,7 +39,7 @@ export class GlobalErrorHandler {
       }
 
       if (err.code === "23503") {
-         logger.warn("Database foreign key violation", logContext);
+         logger.warn("[GlobalErrorHandler] Database foreign key violation", logContext);
 
          return res
             .status(400)
@@ -48,7 +48,7 @@ export class GlobalErrorHandler {
 
       // Mongoose Validation Errors
       if (err.name === "ValidationError") {
-         logger.warn("Validation error", logContext);
+         logger.warn("[GlobalErrorHandler] Validation error", logContext);
 
          return res
             .status(400)
@@ -57,7 +57,7 @@ export class GlobalErrorHandler {
 
       // JWT Errors
       if (err.name === "TokenExpiredError") {
-         logger.warn("Token expired", logContext);
+         logger.warn("[GlobalErrorHandler] Token expired", logContext);
 
          return res
             .status(401)
@@ -72,7 +72,7 @@ export class GlobalErrorHandler {
       }
 
       if (err.name === "JsonWebTokenError") {
-         logger.warn("Invalid JWT token", logContext);
+         logger.warn("[GlobalErrorHandler] Invalid JWT token", logContext);
 
          return res
             .status(401)
@@ -87,7 +87,7 @@ export class GlobalErrorHandler {
       }
 
       // unexpected errors
-      logger.error("Unexpected error", logContext);
+      logger.error("[GlobalErrorHandler] Unexpected error", logContext);
 
       return res
          .status(500)
