@@ -133,8 +133,8 @@ export class EventProducer {
       };
    }
 
-   async publishApiHits(eventData: PublishingEventDataType,publishOptions:PublishOptions): Promise<void> {
-      if(this.isShutingDown) {
+   async publishApiHits(eventData: PublishingEventDataType, publishOptions: PublishOptions): Promise<boolean> {
+      if (this.isShutingDown) {
          logger.warn("[EventProducer] Publish attempt during shutdown", {
             queue: this.queueName,
             messageId: eventData.messageId,
@@ -162,11 +162,51 @@ export class EventProducer {
             await this.publish(eventData);
             const latencyMs = Date.now() - startMs;
             this.circuitBreaker.onSuccess();
-         } catch (error) {
+            this.incrementMetrics({ published: 1, retriesUsed: attempt });
 
+            logger.info("[EventProducer] Message published successfully", {
+               queue: this.queueName,
+               messageId: eventData.messageId,
+               correlationId,
+               latencyMs,
+               attempt,
+            });
+            return true;
+         } catch (error) {
+            const latencyMs = Date.now() - startMs;
+            this.circuitBreaker.onFailure();
+            this.incrementMetrics({ failed: 1 });
+
+            logger.error("[EventProducer] Failed to publish message", {
+               queue: this.queueName,
+               messageId: eventData.messageId,
+               correlationId,
+               latencyMs,
+               attempt,
+               error,
+            });
+
+            if (!this.retryStrategy.shouldRetry(attempt)) {
+               logger.error("[EventProducer] Max retry attempts reached, giving up on message", {
+                  queue: this.queueName,
+                  messageId: eventData.messageId,
+                  correlationId,
+                  attempt,
+               });
+               throw error;
+            }
+
+            const retryDelay = this.retryStrategy.getRetryDelay(attempt);
+            logger.info(`[EventProducer] Waiting ${retryDelay}ms before retrying`, {
+               queue: this.queueName,
+               messageId: eventData.messageId,
+               correlationId,
+               attempt,
+               retryDelay,
+            });
+            await this.retryStrategy.waitForRetry(attempt);
+            attempt++;
          }
       }
-
-
    }
 }

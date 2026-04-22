@@ -46,13 +46,12 @@ export interface EventProducerMetricsType {
    retriesUsed: number;
 }
 
-
 // messageId = unique ID of one single text message
 // correlationId = chat ID of the whole conversation
 export interface PublishingEventDataType {
    eventData: any;
-   messageId: string; 
-   correlationId: string; 
+   messageId: string;
+   correlationId: string;
    attempts?: number;
 }
 

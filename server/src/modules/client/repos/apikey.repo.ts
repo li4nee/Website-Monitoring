@@ -27,6 +27,23 @@ export class MongoApiKeyRepo extends ApiKeyBaseRepo<ApiKeyWithId> {
       }
    }
 
+   async findByKeyId(keyId: string, isActive: boolean, checkExpiry: boolean): Promise<ApiKeyWithId | null> {
+      try {
+         const now = new Date();
+         const filter: any = { keyId, isActive };
+
+         if (checkExpiry) {
+            filter.expiresAt = { $gt: now };
+         }
+
+         const apiKey = await this.model.findOne(filter).select("-__v").populate("clientId");
+         return apiKey;
+      } catch (error) {
+         logger.error(`Error finding API key by keyId: ${keyId}`, { error });
+         throw error;
+      }
+   }
+
    async findById(id: string): Promise<ApiKeyWithId | null> {
       try {
          const apiKey = await this.model.findById(id).select("-__v -keyValue").populate("clientId", "name slug");
