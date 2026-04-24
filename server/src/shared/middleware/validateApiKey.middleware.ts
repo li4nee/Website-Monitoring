@@ -67,6 +67,8 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
          id: client._id.toString(),
          name: client.name,
          slug: client.slug,
+         ip: req.ip,
+         userAgent: req.get("User-Agent") || undefined,
       };
 
       req.apiKey = {

@@ -20,9 +20,6 @@ const DEFAULT_PERMISSIONS = {
    canExportData: false,
 };
 
-export interface IAuthService {
-   validateUser(token: string): Promise<User>;
-}
 export class AuthService {
    protected userRepo: UserBaseRepo<UserWithId>;
    private jwtUtils = JwtUtils;

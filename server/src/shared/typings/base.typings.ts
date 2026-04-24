@@ -47,6 +47,8 @@ export interface ClientInsideAuthorizedRequest {
    id: string;
    name: string;
    slug: string;
+   ip?: string;
+   userAgent?: string;
 }
 
 export interface ApiKeyInsideAuthorizedRequest {

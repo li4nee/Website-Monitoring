@@ -13,6 +13,7 @@ import { GlobalErrorHandler } from "./shared/middleware/globalErrorHandler.middl
 import CookieParser from "cookie-parser";
 import AuthRouter from "./modules/auth/routes/auth.route";
 import ClientAdminRouter from "./modules/client/routes/clientAdmin.route";
+import IngestRouter from "./modules/ingest/routes/ingest.routes";
 import { CentralizedRequestLogger } from "./shared/middleware/requestLogger.middleware";
 const app = express();
 
@@ -73,7 +74,7 @@ app.get("/", (req: Request, res: Response) => {
  */
 app.use("/api/v1/auth", AuthRouter);
 app.use("/api/v1/admin/clients", ClientAdminRouter);
-
+app.use("/api/v1/ingest", IngestRouter);
 /**
  * 404 handler
  */

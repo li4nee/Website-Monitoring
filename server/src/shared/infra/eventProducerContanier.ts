@@ -9,7 +9,6 @@ import { ResourceNotInitializedError } from "../typings/error.typings";
 import { RetryStrategyOptions } from "../typings/retry.typings";
 import { CircuitBreakerOptions } from "../typings/circuitBreaker.typings";
 
-
 export const amqpAdapter: AmqpConnection = {
    async connect(): Promise<{ connection: ChannelModel }> {
       await amqpConnection.connect();
@@ -50,5 +49,3 @@ export class EventProducerContainer {
       return new EventProducer(channelManager, circuitBreaker, retryStrategy, queueName);
    }
 }
-
-

@@ -8,7 +8,7 @@ import {
    PublishingMessageType,
    PublishOptions,
 } from "../typings/messaging.typings";
-import { CircuitBreakerStatsType } from "../typings/circuitBreaker.typings"; 
+import { CircuitBreakerStatsType } from "../typings/circuitBreaker.typings";
 import { IConfirmChannelManager } from "../contracts/infra/IConfirmManager.contract";
 import { ICircuitBreaker } from "../contracts/infra/ICircuitBreaker.contract";
 import { IRetryStrategy } from "../contracts/infra/IRetryStrategy.contract";
@@ -211,4 +211,3 @@ export class EventProducer {
       }
    }
 }
-

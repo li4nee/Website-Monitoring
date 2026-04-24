@@ -2,12 +2,13 @@ import { AuthorizedRequest } from "../../../shared/typings/base.typings";
 import { PermissionNotGranted, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { CookieUtils } from "../../../shared/utils/cookie.utils";
 import { ResponseFormatter } from "../../../shared/utils/responseFormatter.utils";
+import { IAuthService } from "../contracts/IAuthService.contract";
 import { AuthService } from "../services/auth.service";
 import type { NextFunction, Request, Response } from "express";
 
 export class AuthController {
-   protected authService: AuthService;
-   constructor(authService: AuthService) {
+   protected authService: IAuthService;
+   constructor(authService: IAuthService) {
       if (!authService) {
          throw new ResourceNotInitializedError("AuthService must be provided to AuthController");
       }
