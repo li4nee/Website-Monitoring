@@ -1,4 +1,4 @@
-import { RETRYABLE_ERRORS, RetryableError } from "../typings/infra.typings";
+import { RETRYABLE_ERRORS, RetryableError } from "../typings/messaging.typings";
 
 export function isRetryableError(error: RetryableError): boolean {
    if (!error) return false;

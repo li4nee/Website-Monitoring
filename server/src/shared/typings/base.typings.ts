@@ -31,11 +31,32 @@ export interface AuthorizedRequest extends Request {
    user?: UserInsideAuthorizedRequest;
 }
 
+export interface ClientAuthorizedRequest extends Request {
+   client?: ClientInsideAuthorizedRequest;
+   apiKey?: ApiKeyInsideAuthorizedRequest;
+}
+
 export interface UserInsideAuthorizedRequest {
    id: string;
    role: USER_ROLE;
    permissions: Permissions;
    clientId?: string;
+}
+
+export interface ClientInsideAuthorizedRequest {
+   id: string;
+   name: string;
+   slug: string;
+}
+
+export interface ApiKeyInsideAuthorizedRequest {
+   id: string;
+   apiKeyId: string;
+   name: string;
+   permissions: {
+      writeAccess: boolean;
+      readAccess: boolean;
+   };
 }
 
 export type Permissions = {

@@ -5,19 +5,25 @@ import { AuthService } from "../../auth/services/auth.service";
 import { ClientService } from "../services/client.service";
 import { ResponseFormatter } from "../../../shared/utils/responseFormatter.utils";
 import { fa } from "zod/v4/locales";
+import { ApiKeyService } from "../services/apiKey.service";
 
 export class ClientController {
    protected authService: AuthService;
    protected clientService: ClientService;
-   constructor(authService: AuthService, clientService: ClientService) {
+   protected apiKeyService: ApiKeyService;
+   constructor(authService: AuthService, clientService: ClientService, apiKeyService: ApiKeyService) {
       if (!authService) {
-         throw new ResourceNotInitializedError("AuthService must be provided to AuthController");
+         throw new ResourceNotInitializedError("[CLientController] AuthService must be provided to AuthController");
+      }
+      if (!ApiKeyService) {
+         throw new ResourceNotInitializedError("[CLientController] ApiKeyService must be provided to ClientController");
       }
       if (!clientService) {
-         throw new ResourceNotInitializedError("ClientService must be provided to ClientController");
+         throw new ResourceNotInitializedError("[CLientController] ClientService must be provided to ClientController");
       }
       this.authService = authService;
       this.clientService = clientService;
+      this.apiKeyService = apiKeyService;
    }
 
    private checkIfClientIdIsThereAndValid(clientId: string | string[]): void {
@@ -66,7 +72,7 @@ export class ClientController {
       try {
          const { clientId } = req.params;
          this.checkIfClientIdIsThereAndValid(clientId);
-         const apiKey = await this.clientService.createApiKeysForClient(clientId as string, req.body, req.user!);
+         const apiKey = await this.apiKeyService.createApiKeysForClient(clientId as string, req.body, req.user!);
          return res.status(201).json(ResponseFormatter.success("API keys created successfully.", 201, { apiKey }));
       } catch (error) {
          next(error);
@@ -80,7 +86,7 @@ export class ClientController {
       try {
          const { clientId } = req.params;
          this.checkIfClientIdIsThereAndValid(clientId);
-         const apiKeys = await this.clientService.getApiKeysForClient(clientId as string, req.user!);
+         const apiKeys = await this.apiKeyService.getApiKeysForClient(clientId as string, req.user!);
          return res.status(200).json(ResponseFormatter.success("API keys retrieved successfully.", 200, { apiKeys }));
       } catch (error) {
          next(error);
@@ -100,7 +106,7 @@ export class ClientController {
          if (typeof id !== "string") {
             return res.status(400).json(ResponseFormatter.error("API Key ID must be a string.", 400));
          }
-         const apiKey = await this.clientService.getApiKeyFromId(clientId as string, id, req.user!);
+         const apiKey = await this.apiKeyService.getApiKeyFromId(clientId as string, id, req.user!);
          if (!apiKey) {
             return res.status(404).json(ResponseFormatter.error("API key not found.", 404));
          }

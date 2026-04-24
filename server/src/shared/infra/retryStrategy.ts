@@ -1,4 +1,5 @@
-import { RetryStrategyOptions } from "../typings/infra.typings";
+import { RetryStrategyOptions } from "../typings/retry.typings";
+
 
 export class RetryStrategy {
    private maxRetries: number;

@@ -94,7 +94,7 @@ clientSchema.index({ slug: 1 });
 clientSchema.index({ isActive: 1 });
 
 export type Client = InferSchemaType<typeof clientSchema>;
-
+export type ClientWithId = Client & { _id: mongoose.Types.ObjectId };
 export type ClientDocument = HydratedDocument<Client>;
 
 export const ClientModel = mongoose.model("Client", clientSchema);

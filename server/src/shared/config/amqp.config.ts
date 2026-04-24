@@ -150,6 +150,10 @@ class AMQPConnection {
       return this.channel;
    }
 
+   get Connection(): amqp.ChannelModel | null {
+      return this.connection;
+   }  
+
    async getConnectionStatus(): Promise<AMQPConnectionStatus> {
       if (this.isConnecting) return AMQPConnectionStatus.CONNECTING;
       if (!this.connected) return AMQPConnectionStatus.DISCONNECTED;

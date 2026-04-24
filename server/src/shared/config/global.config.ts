@@ -48,8 +48,16 @@ export const globalConfig = {
       queue: process.env.RABBITMQ_QUEUE || "server_monitoring_queue",
       exchange: process.env.RABBITMQ_EXCHANGE || "server_monitoring_exchange",
       publisherConfirm: process.env.RABBITMQ_PUBLISHER_CONFIRM === "true" || false, // confirms need garne ki nagarne pako
-      retryAttempts: parseInt(process.env.RABBITMQ_RETRY_ATTEMPTS || "3", 10),
-      retryDelay: parseInt(process.env.RABBITMQ_RETRY_DELAY || "1000", 10), // ms ma ho yo
+   },
+
+   infra: {
+      circuitBreakerFailureThreshold: parseInt(process.env.CIRCUIT_BREAKER_FAILURE_THRESHOLD || "5", 10),
+      circuitBreakerCooldownTimeInMs: parseInt(process.env.CIRCUIT_BREAKER_COOLDOWN_TIME_IN_MS || "30000", 10), // 30 seconds
+      circuitBreakerHalfOpenStateMaxAttempts: parseInt(process.env.CIRCUIT_BREAKER_HALF_OPEN_STATE_MAX_ATTEMPTS || "2", 10),
+      retryAttempts: parseInt(process.env.RABBITMQ_RETRY_ATTEMPTS || "5", 10),
+      retryDelay: parseInt(process.env.RABBITMQ_RETRY_DELAY || "1000", 10), // ms ma ho yo base retry delay.
+      maxRetryDelay: parseInt(process.env.RABBITMQ_MAX_RETRY_DELAY || "30000", 10), // ms ma ho yo max retry delay.
+      jitterFactor: parseFloat(process.env.RABBITMQ_JITTER_FACTOR || "0.3"), // 0.3 means add up to 30% random jitter to avoid thundering herd problem
    },
 
    cookieOptions: {

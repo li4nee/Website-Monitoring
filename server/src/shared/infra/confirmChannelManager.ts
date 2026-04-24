@@ -40,7 +40,7 @@ export class ConfirmChannelManager extends EventEmitter {
       return this.connect();
    }
 
-   async connect(): Promise<ConfirmChannel> {
+   private async connect(): Promise<ConfirmChannel> {
       this.isConnecting = true;
 
       try {
@@ -108,3 +108,4 @@ export class ConfirmChannelManager extends EventEmitter {
       }
    }
 }
+

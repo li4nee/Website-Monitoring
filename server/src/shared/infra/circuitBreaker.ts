@@ -1,5 +1,5 @@
 import logger from "../config/logger.config";
-import { CircuitBreakerOptions, CircuitBreakerState } from "../typings/infra.typings";
+import { CircuitBreakerOptions, CircuitBreakerState, CircuitBreakerStatsType } from "../typings/circuitBreaker.typings";
 
 export class CircuitBreaker {
    private state: CircuitBreakerState = CircuitBreakerState.CLOSED;
@@ -44,7 +44,7 @@ export class CircuitBreaker {
    /**
     * Opens the circuit breaker, transitions to OPEN state, sets the last failure time, and resets the failure count and half-open attempts.
     */
-   openCircuit(): void {
+   private openCircuit(): void {
       this.transitionStateTo(CircuitBreakerState.OPEN);
       this.setLastFailureTime(Date.now());
       this.failureCount = 0;
@@ -57,7 +57,7 @@ export class CircuitBreaker {
    /**
     * Closes the circuit breaker, transitions to CLOSED state, and resets all relevant counters and timestamps.
     */
-   closeCircuit(): void {
+   private closeCircuit(): void {
       this.transitionStateTo(CircuitBreakerState.CLOSED);
 
       logger.info(
@@ -78,7 +78,7 @@ export class CircuitBreaker {
    /**
     * Returns the current state of the circuit breaker. If the circuit is OPEN and the cooldown time has passed, it transitions to HALF_OPEN before returning the state.
     */
-   get currentState(): CircuitBreakerState {
+   getCurrentState(): CircuitBreakerState {
       this.moveToHalfOpenIfReady();
       return this.state;
    }
@@ -131,7 +131,7 @@ export class CircuitBreaker {
       }
    }
 
-   get Stats() {
+   getStats(): CircuitBreakerStatsType {
       return {
          state: this.state,
          failureCount: this.failureCount,
