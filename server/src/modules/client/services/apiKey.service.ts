@@ -134,7 +134,12 @@ export class ApiKeyService {
       }
    }
 
-   async getClientFromApiKey(apiKeyValue: string): Promise<{ client: ClientWithId; apiKeyDoc: ApiKeyWithId } | null> {
+   async getClientFromApiKey(
+      apiKeyValue: string,
+   ): Promise<{
+      client: { _id: Types.ObjectId; name: string; slug: string; isActive: boolean };
+      apiKeyDoc: ApiKeyWithId;
+   }> {
       try {
          const hashedKeyValue = this.hashApiKey(apiKeyValue);
 
@@ -148,13 +153,20 @@ export class ApiKeyService {
             throw new InvalidInputError("API key not linked to client");
          }
 
-         const client = await this.clientRepo.findById(apiKeyDoc.clientId.toString(), true);
+         const client = await this.clientRepo.findById(apiKeyDoc.clientId.toString(), false);
 
          if (!client) {
             throw new InvalidInputError("Client not found");
          }
 
-         return { client, apiKeyDoc };
+         const safeClient: { _id: Types.ObjectId; name: string; slug: string; isActive: boolean } = {
+            _id: client._id,
+            name: client.name,
+            slug: client.slug,
+            isActive: client.isActive,
+         };
+
+         return { client: safeClient, apiKeyDoc };
       } catch (error) {
          logger.error("Error retrieving client from API key", {
             error,

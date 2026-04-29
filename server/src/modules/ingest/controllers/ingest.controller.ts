@@ -15,16 +15,12 @@ export class IngestController {
    async ingestApiHits(req: ClientAuthorizedRequest, res: Response, next: NextFunction) {
       try {
          const clientId = req.client?.id;
-         const ip = req.client?.ip;
-         const userAgent = req.client?.userAgent;
          const apiKeyId = req.apiKey?.id;
 
          if (!clientId || !apiKeyId) {
             logger.warn("[IngestController] Missing clientId or apiKeyId in request", {
                clientId,
                apiKeyId,
-               ip,
-               userAgent,
             });
             throw new UnauthorizedError("Missing clientId or apiKeyId in request");
          }
@@ -33,11 +29,9 @@ export class IngestController {
             body: req.body,
             clientId,
             apiKeyId,
-            ip,
-            userAgent,
          });
 
-         let result = await this.ingestService.ingestApiHit(req.body, clientId, apiKeyId, ip, userAgent);
+         let result = await this.ingestService.ingestApiHit(req.body, clientId, apiKeyId);
          res.status(202).json(ResponseFormatter.success("API hit ingested successfully", 202, result));
       } catch (error) {
          next(error);

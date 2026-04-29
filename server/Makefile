@@ -4,8 +4,8 @@ lint:
 up-with-logs:
 	sudo docker compose -f docker-compose.yml --env-file .env down
 	sudo docker compose -f docker-compose.yml --env-file .env up --build -d
-	sudo docker image prune -f
 	sudo docker compose -f docker-compose.yml --env-file .env logs -f server-api
+	sudo docker image prune -f
 
 up:
 	sudo docker compose -f docker-compose.yml --env-file .env down

@@ -27,7 +27,8 @@ export interface EventDataType {
    latencyMs: number;
    clientId: string;
    apiKeyId: string;
-   ip?: string;
+   ipInIpV4?: string;
+   ipInIpV6?: string;
    userAgent?: string;
 }
 export interface PublishingMessageType {

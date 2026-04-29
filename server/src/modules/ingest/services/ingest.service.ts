@@ -15,8 +15,6 @@ export class IngestService {
       data: ApiHitDataDtoType,
       clientId: string,
       apiKeyId: string,
-      ip?: string,
-      userAgent?: string,
    ): Promise<IngestApiHitResponseDto> {
       try {
          const eventData: EventDataType = {
@@ -29,8 +27,9 @@ export class IngestService {
             latencyMs: data.latencyMs,
             clientId: clientId,
             apiKeyId: apiKeyId,
-            ip: ip || "unknown",
-            userAgent: userAgent || "unknown",
+            ipInIpV4: data.ipInIpv4,
+            ipInIpV6: data.ipInTpv6,
+            userAgent: data.userAgent || "unknown",
          };
 
          let publishOptions = {

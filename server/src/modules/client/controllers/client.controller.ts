@@ -6,22 +6,19 @@ import { ClientService } from "../services/client.service";
 import { ResponseFormatter } from "../../../shared/utils/responseFormatter.utils";
 import { fa } from "zod/v4/locales";
 import { ApiKeyService } from "../services/apiKey.service";
+import { IClientService } from "../contracts/IClientService.contract";
+import { IApiKeyService } from "../contracts/IApiKeyService.contract";
 
 export class ClientController {
-   protected authService: AuthService;
-   protected clientService: ClientService;
-   protected apiKeyService: ApiKeyService;
-   constructor(authService: AuthService, clientService: ClientService, apiKeyService: ApiKeyService) {
-      if (!authService) {
-         throw new ResourceNotInitializedError("[CLientController] AuthService must be provided to AuthController");
-      }
+   protected clientService: IClientService;
+   protected apiKeyService: IApiKeyService;
+   constructor(clientService: IClientService, apiKeyService: IApiKeyService) {
       if (!ApiKeyService) {
          throw new ResourceNotInitializedError("[CLientController] ApiKeyService must be provided to ClientController");
       }
       if (!clientService) {
          throw new ResourceNotInitializedError("[CLientController] ClientService must be provided to ClientController");
       }
-      this.authService = authService;
       this.clientService = clientService;
       this.apiKeyService = apiKeyService;
    }
@@ -40,10 +37,6 @@ export class ClientController {
    async createClient(req: AuthorizedRequest, res: Response, next: NextFunction) {
       try {
          // This extra checking dispite middleware to ensure that no way other user can use this endpoint.
-         const isSuperAdmin = await this.authService.isSuperAdmin(req.user!.id);
-         if (!isSuperAdmin) {
-            return res.status(403).json(ResponseFormatter.error("Access denied.", 403));
-         }
          const client = await this.clientService.createClient(req.body, req.user!.id);
          return res.status(201).json(ResponseFormatter.success("Client created successfully.", 201, { client }));
       } catch (error) {
@@ -73,7 +66,7 @@ export class ClientController {
          const { clientId } = req.params;
          this.checkIfClientIdIsThereAndValid(clientId);
          const apiKey = await this.apiKeyService.createApiKeysForClient(clientId as string, req.body, req.user!);
-         return res.status(201).json(ResponseFormatter.success("API keys created successfully.", 201, { apiKey }));
+         return res.status(201).json(ResponseFormatter.success("API keys created successfully.", 201, apiKey ));
       } catch (error) {
          next(error);
       }

@@ -7,6 +7,11 @@ import type { Request, Response } from "express";
 import { IngestDependencies } from "../dependencies/ingestDependencyContainer";
 const router = express.Router();
 
+/**
+ * @route POST /ingest
+ * @desc Ingest API hits data
+ * @access Public (but requires API key)
+ */
 router.post("/", rateLimiter, validateApiKey, validateBody(HitDataDto), (request: Request, res: Response, next: NextFunction) =>
    IngestDependencies.controllers.ingestController.ingestApiHits(request, res, next),
 );

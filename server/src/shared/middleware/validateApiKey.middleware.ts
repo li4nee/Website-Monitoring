@@ -1,9 +1,8 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Response, NextFunction } from "express";
 import logger from "../config/logger.config";
 import { PermissionNotGranted, UnauthorizedError } from "../typings/error.typings";
 import InitializedClientContainer from "../../modules/client/dependencies/client.dependency";
 import { ClientAuthorizedRequest } from "../typings/base.typings";
-import path from "node:path";
 
 /**
  * Middleware to validate API key from the request header.
@@ -14,7 +13,7 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
       const apiKey = req.header("x-api-key");
       if (!apiKey) {
          logger.warn("[ValidateApiKey] API key is missing in the request header", {
-            path: req.path,
+            endpoint: req.originalUrl,
             method: req.method,
             ip: req.ip,
          });
@@ -25,10 +24,10 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
 
       const client = result?.client;
       const apiKeyDoc = result?.apiKeyDoc;
-
+      
       if (!apiKeyDoc) {
          logger.warn("[ValidateApiKey] Invalid API key provided", {
-            path: req.path,
+            endpoint: req.originalUrl,
             method: req.method,
             ip: req.ip,
          });
@@ -37,7 +36,7 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
 
       if (!client) {
          logger.warn("[ValidateApiKey] Invalid API key provided", {
-            path: req.path,
+            endpoint: req.originalUrl,
             method: req.method,
             ip: req.ip,
          });
@@ -46,7 +45,7 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
 
       if (!client.isActive) {
          logger.warn("[ValidateApiKey] API key belongs to an inactive client", {
-            path: req.path,
+            endpoint: req.originalUrl,
             method: req.method,
             ip: req.ip,
             clientSlug: client.slug,
@@ -56,7 +55,7 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
 
       if (!apiKeyDoc?.permissions?.writeAccess) {
          logger.warn("[ValidateApiKey] API key does not have write access", {
-            path: req.path,
+            endpoint: req.originalUrl,
             method: req.method,
             ip: req.ip,
             clientSlug: client.slug,

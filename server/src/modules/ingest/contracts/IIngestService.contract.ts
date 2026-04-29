@@ -6,7 +6,5 @@ export interface IIngestService {
       data: ApiHitDataDtoType,
       clientId: string,
       apiKeyId: string,
-      ip?: string,
-      userAgent?: string,
    ): Promise<IngestApiHitResponseDto>;
 }
