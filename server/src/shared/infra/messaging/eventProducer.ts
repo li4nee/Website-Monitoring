@@ -1,17 +1,17 @@
-import logger from "../config/logger.config";
-import { ResourceNotInitializedError } from "../typings/error.typings";
-import { ProducerShuttingDownError } from "../typings/eventError.typings";
+import logger from "../../config/logger.config";
+import { ICircuitBreaker } from "../../contracts/infra/resilience/ICircuitBreaker.contract";
+import { IConfirmChannelManager } from "../../contracts/infra/messaging/IConfirmManager.contract";
+import { IRetryStrategy } from "../../contracts/infra/resilience/IRetryStrategy.contract";
+import { CircuitBreakerStatsType } from "../../typings/circuitBreaker.typings";
+import { ResourceNotInitializedError } from "../../typings/error.typings";
+import { ProducerShuttingDownError } from "../../typings/eventError.typings";
 import {
    EventProducerMetricsType,
    EventType,
    PublishingEventDataType,
    PublishingMessageType,
    PublishOptions,
-} from "../typings/messaging.typings";
-import { CircuitBreakerStatsType } from "../typings/circuitBreaker.typings";
-import { IConfirmChannelManager } from "../contracts/infra/IConfirmManager.contract";
-import { ICircuitBreaker } from "../contracts/infra/ICircuitBreaker.contract";
-import { IRetryStrategy } from "../contracts/infra/IRetryStrategy.contract";
+} from "../../typings/messaging.typings";
 
 export class EventProducer {
    private channelManager: IConfirmChannelManager;

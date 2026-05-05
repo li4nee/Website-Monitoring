@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { UnauthorizedError } from "../typings/error.typings";
 import { JwtUtils } from "../utils/jwt.utils";
-import { AuthorizedRequest } from "../typings/base.typings";
+import { AuthorizedRequest } from "../typings/auth.typings";
 import logger from "../config/logger.config";
 import { globalConfig } from "../config/global.config";
 

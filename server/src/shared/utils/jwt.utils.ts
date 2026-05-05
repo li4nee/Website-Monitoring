@@ -1,7 +1,7 @@
 import jwt, { SignOptions } from "jsonwebtoken";
 import { StringValue } from "ms";
 import { JsonWebTokenError } from "../typings/error.typings";
-import { JwtPayload, MaskedJwtPayload, Permissions, USER_ROLE } from "../typings/base.typings";
+import { JwtPayload, MaskedJwtPayload, Permissions, USER_ROLE } from "../typings/auth.typings";
 
 export class JwtUtils {
    static PERMISSION_FLAGS: (keyof Permissions)[] = [

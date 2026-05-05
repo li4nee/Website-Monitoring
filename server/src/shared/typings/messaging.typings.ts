@@ -1,3 +1,5 @@
+import { HTTP_METHODS } from "./auth.typings";
+
 export enum EventType {
    API_HITS = "API_HITS",
 }
@@ -14,6 +16,7 @@ export interface PublishingEventDataType {
    eventData: EventDataType;
    messageId: string;
    correlationId: string;
+   timeStamp: string;
    attempts?: number;
 }
 
@@ -22,7 +25,7 @@ export interface EventDataType {
    timeStamp: string;
    serviceName: string;
    endpoint: string;
-   method: string;
+   method: HTTP_METHODS;
    statusCode: number;
    latencyMs: number;
    clientId: string;
@@ -31,6 +34,7 @@ export interface EventDataType {
    ipInIpV6?: string;
    userAgent?: string;
 }
+
 export interface PublishingMessageType {
    type: EventType;
    data: PublishingEventDataType;

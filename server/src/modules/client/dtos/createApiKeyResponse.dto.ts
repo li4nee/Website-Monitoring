@@ -1,4 +1,4 @@
-import { ApiKeyWithId } from "../../../shared/models/apiKeys.model";
+import { ApiKeyWithId } from "../../../shared/infra/db/mongo/models/apiKeys.model";
 
 export class CreateApiKeyResponseDto {
    _id: string;

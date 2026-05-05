@@ -1,6 +1,6 @@
-import { ClientDocument, ClientModel } from "../../../shared/models/client.model";
 import { ClientBaseRepo } from "./clientBase.repo";
 import logger from "../../../shared/config/logger.config";
+import { ClientDocument, ClientModel } from "../../../shared/infra/db/mongo/models/client.model";
 
 /**
  * MongoClientRepo handles CRUD for Client documents with Mongoose.

@@ -1,12 +1,12 @@
 import { globalConfig } from "../../../shared/config/global.config";
-import { User, UserDocument, UserWithId } from "../../../shared/models/user.model";
+import { User, UserDocument, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
 import { PermissionNotGranted, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { JwtUtils } from "../../../shared/utils/jwt.utils";
 import { UserBaseRepo } from "../repos/userBase.repo";
 import logger from "../../../shared/config/logger.config";
 import { RegistrationDTOType } from "../dtos/onboarding.dto";
 import { PasswordUtils } from "../../../shared/utils/password.utils";
-import { USER_ROLE } from "../../../shared/typings/base.typings";
+import { USER_ROLE } from "../../../shared/typings/auth.typings";
 import { UserResponseDto } from "../dtos/userResponse.dto";
 
 type UniqueCheck = "email" | "username" | "both";

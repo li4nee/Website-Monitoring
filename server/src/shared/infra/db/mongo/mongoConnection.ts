@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import { globalConfig } from "./global.config";
-import logger from "./logger.config";
+import { globalConfig } from "../../../config/global.config";
+import logger from "../../../config/logger.config";
 
 /**
  * MongoDb connection manager class.Semi singleton
  */
-class MongoConnection {
+export class MongoConnection {
    private connection: mongoose.Connection | null;
    constructor() {
       this.connection = null;

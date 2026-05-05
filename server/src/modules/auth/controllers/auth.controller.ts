@@ -1,4 +1,4 @@
-import { AuthorizedRequest } from "../../../shared/typings/base.typings";
+import { AuthorizedRequest } from "../../../shared/typings/auth.typings";
 import { PermissionNotGranted, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { CookieUtils } from "../../../shared/utils/cookie.utils";
 import { ResponseFormatter } from "../../../shared/utils/responseFormatter.utils";

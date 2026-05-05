@@ -1,4 +1,4 @@
-import { USER_ROLE } from "../../../shared/typings/base.typings";
+import { USER_ROLE } from "../../../shared/typings/auth.typings";
 
 /**
  * Makes this easy to switch between database without touching the service layer.

@@ -1,11 +1,11 @@
 import pg from "pg";
-import { globalConfig } from "./global.config";
-import logger from "./logger.config";
+import { globalConfig } from "../../../config/global.config";
+import logger from "../../../config/logger.config";
 
 /**
  * PostgreSQL connection manager class. Semi Singleton.
  */
-class PostgresConnection {
+export class PostgresConnection {
    private pool: pg.Pool | null;
    constructor() {
       this.pool = null;

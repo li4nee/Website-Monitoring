@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { ApiKeyWithId } from "../../../shared/models/apiKeys.model";
 import { CreateApiKeyDtoType } from "../dtos/createApiKey.dto";
 import { CreateApiKeyResponseDto } from "../dtos/createApiKeyResponse.dto";
-import { UserInsideAuthorizedRequest } from "../../../shared/typings/base.typings";
+import { UserInsideAuthorizedRequest } from "../../../shared/typings/auth.typings";
 
 export interface IApiKeyService {
    createApiKeysForClient(

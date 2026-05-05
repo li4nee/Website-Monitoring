@@ -1,5 +1,5 @@
 import mongoose, { HydratedDocument, InferSchemaType } from "mongoose";
-import { DEVELOPMENT_ENVIRONMENT } from "../typings/base.typings";
+import { DEVELOPMENT_ENVIRONMENT } from "../../../../typings/auth.typings";
 
 const ApiKeySchema = new mongoose.Schema(
    {

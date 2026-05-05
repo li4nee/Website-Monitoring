@@ -1,5 +1,5 @@
-import logger from "../config/logger.config";
-import { CircuitBreakerOptions, CircuitBreakerState, CircuitBreakerStatsType } from "../typings/circuitBreaker.typings";
+import logger from "../../config/logger.config";
+import { CircuitBreakerOptions, CircuitBreakerState, CircuitBreakerStatsType } from "../../typings/circuitBreaker.typings";
 
 export class CircuitBreaker {
    private state: CircuitBreakerState = CircuitBreakerState.CLOSED;

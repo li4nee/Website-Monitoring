@@ -1,4 +1,4 @@
-import { User, UserWithId } from "../../../shared/models/user.model";
+import { User, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
 import { Types } from "mongoose";
 
 export class UserResponseDto {

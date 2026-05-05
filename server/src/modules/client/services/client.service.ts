@@ -1,15 +1,15 @@
 import { Types } from "mongoose";
 import logger from "../../../shared/config/logger.config";
-import { Client, ClientDocument } from "../../../shared/models/client.model";
-import { User, UserDocument, UserWithId } from "../../../shared/models/user.model";
 import { InvalidInputError, PermissionNotGranted, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { UserBaseRepo } from "../../auth/repos/userBase.repo";
 import { CreateClientDTOType } from "../dtos/createClient.dto";
 import { ClientBaseRepo } from "../repos/clientBase.repo";
-import { USER_ROLE, UserInsideAuthorizedRequest } from "../../../shared/typings/base.typings";
+import { USER_ROLE, UserInsideAuthorizedRequest } from "../../../shared/typings/auth.typings";
 import { AuthorizationUtils } from "../../../shared/utils/authorization.utils";
 import { CreateClientUserDTO, CreateClientUserDTOType } from "../dtos/createClientUser.dto";
 import crypto from "crypto";
+import { Client } from "../../../shared/infra/db/mongo/models/client.model";
+import { User, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
 export class ClientService {
    protected clientRepo: ClientBaseRepo<Client>;
    // protected apiKeyRepo: ApiKeyBaseRepo<ApiKeyWithId>;

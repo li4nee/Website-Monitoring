@@ -1,4 +1,4 @@
-import { AuthorizedRequest } from "../../../shared/typings/base.typings";
+import { AuthorizedRequest } from "../../../shared/typings/auth.typings";
 import type { Response, NextFunction } from "express";
 import { InvalidInputError, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { AuthService } from "../../auth/services/auth.service";
@@ -66,7 +66,7 @@ export class ClientController {
          const { clientId } = req.params;
          this.checkIfClientIdIsThereAndValid(clientId);
          const apiKey = await this.apiKeyService.createApiKeysForClient(clientId as string, req.body, req.user!);
-         return res.status(201).json(ResponseFormatter.success("API keys created successfully.", 201, apiKey ));
+         return res.status(201).json(ResponseFormatter.success("API keys created successfully.", 201, apiKey));
       } catch (error) {
          next(error);
       }

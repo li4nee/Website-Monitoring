@@ -1,6 +1,5 @@
 import winston from "winston";
 import { globalConfig } from "./global.config";
-import expressWinston from "express-winston";
 /**
  * Custom log format for pretty console output in development.
  */

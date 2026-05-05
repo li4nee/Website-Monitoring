@@ -7,7 +7,7 @@ import { Request } from "express";
 import { CentralizedRequestLogger } from "../../../shared/middleware/requestLogger.middleware";
 import { authenticate } from "../../../shared/middleware/authenticate.middleware";
 import { authorize } from "../../../shared/middleware/authorize.middleware";
-import { USER_ROLE } from "../../../shared/typings/base.typings";
+import { USER_ROLE } from "../../../shared/typings/auth.typings";
 import { LoginDTO } from "../dtos/sessionManagement.dto";
 
 const router = Router();

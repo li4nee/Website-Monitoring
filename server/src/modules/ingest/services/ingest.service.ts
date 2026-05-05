@@ -1,21 +1,17 @@
-import { IEventProducer } from "../../../shared/contracts/infra/IEventProducer.contract";
-import { EventProducer } from "../../../shared/infra/eventProducer";
+import { IEventProducer } from "../../../shared/contracts/infra/messaging/IEventProducer.contract";
 import { EventDataType } from "../../../shared/typings/messaging.typings";
 import { ApiHitDataDtoType } from "../dtos/hitData.dto";
 import { v4 as uuidv4 } from "uuid";
 import { IngestApiHitResponseDto } from "../dtos/ingestApiHitResponse.dto";
 import logger from "../../../shared/config/logger.config";
+import { time, timeStamp } from "node:console";
 export class IngestService {
    private eventProducer: IEventProducer;
    constructor(eventProducer: IEventProducer) {
       this.eventProducer = eventProducer;
    }
 
-   async ingestApiHit(
-      data: ApiHitDataDtoType,
-      clientId: string,
-      apiKeyId: string,
-   ): Promise<IngestApiHitResponseDto> {
+   async ingestApiHit(data: ApiHitDataDtoType, clientId: string, apiKeyId: string): Promise<IngestApiHitResponseDto> {
       try {
          const eventData: EventDataType = {
             eventId: uuidv4(),
@@ -45,13 +41,14 @@ export class IngestService {
             messageId: publishOptions.messageId,
             correlationId: publishOptions.correlationId,
             attempts: 0,
+            timeStamp: new Date().toISOString(),
          };
 
          await this.eventProducer.publishApiHits(publishData, publishOptions);
          return {
             eventId: eventData.eventId,
             status: "success",
-            timeStamp: eventData.timeStamp,
+            timeStamp: new Date().toISOString(),
          };
       } catch (error) {
          logger.error("Failed to publish API hit event", { error, data });

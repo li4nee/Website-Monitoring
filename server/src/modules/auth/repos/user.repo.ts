@@ -1,6 +1,6 @@
 import logger from "../../../shared/config/logger.config";
-import { User, UserModel, UserWithId } from "../../../shared/models/user.model";
-import { USER_ROLE } from "../../../shared/typings/base.typings";
+import { User, UserModel, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
+import { USER_ROLE } from "../../../shared/typings/auth.typings";
 import { UserBaseRepo } from "./userBase.repo";
 
 export class MongoUserRepo extends UserBaseRepo<UserWithId> {

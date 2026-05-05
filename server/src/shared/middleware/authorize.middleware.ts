@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { AuthorizedRequest } from "../typings/base.typings";
+import { AuthorizedRequest } from "../typings/auth.typings";
 import { PermissionNotGranted, UnauthorizedError } from "../typings/error.typings";
 
 export const authorize = (requiredRoles: string[]) => (req: AuthorizedRequest, res: Response, next: NextFunction) => {

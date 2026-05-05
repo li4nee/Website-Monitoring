@@ -1,4 +1,4 @@
-import { USER_ROLE, UserInsideAuthorizedRequest } from "../typings/base.typings";
+import { USER_ROLE, UserInsideAuthorizedRequest } from "../typings/auth.typings";
 import { InvalidInputError } from "../typings/error.typings";
 
 export class AuthorizationUtils {

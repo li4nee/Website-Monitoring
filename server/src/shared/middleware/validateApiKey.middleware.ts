@@ -2,7 +2,7 @@ import type { Response, NextFunction } from "express";
 import logger from "../config/logger.config";
 import { PermissionNotGranted, UnauthorizedError } from "../typings/error.typings";
 import InitializedClientContainer from "../../modules/client/dependencies/client.dependency";
-import { ClientAuthorizedRequest } from "../typings/base.typings";
+import { ClientAuthorizedRequest } from "../typings/auth.typings";
 
 /**
  * Middleware to validate API key from the request header.
@@ -24,7 +24,7 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
 
       const client = result?.client;
       const apiKeyDoc = result?.apiKeyDoc;
-      
+
       if (!apiKeyDoc) {
          logger.warn("[ValidateApiKey] Invalid API key provided", {
             endpoint: req.originalUrl,

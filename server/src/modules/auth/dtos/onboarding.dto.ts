@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { USER_ROLE } from "../../../shared/typings/base.typings";
+import { USER_ROLE } from "../../../shared/typings/auth.typings";
 
 export const OnboardingBaseDto = z
    .object({

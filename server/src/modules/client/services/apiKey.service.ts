@@ -1,15 +1,15 @@
 import { Types } from "mongoose";
 import logger from "../../../shared/config/logger.config";
-import { ApiKeyWithId } from "../../../shared/models/apiKeys.model";
 import { InvalidInputError, PermissionNotGranted, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { ApiKeyBaseRepo } from "../repos/apiKeyBase.repo";
 import { AuthorizationUtils } from "../../../shared/utils/authorization.utils";
 import { CreateApiKeyDtoType } from "../dtos/createApiKey.dto";
-import { UserInsideAuthorizedRequest } from "../../../shared/typings/base.typings";
+import { UserInsideAuthorizedRequest } from "../../../shared/typings/auth.typings";
 import crypto from "crypto";
 import { CreateApiKeyResponseDto } from "../dtos/createApiKeyResponse.dto";
 import { ClientBaseRepo } from "../repos/clientBase.repo";
-import { Client, ClientWithId } from "../../../shared/models/client.model";
+import { ApiKeyWithId } from "../../../shared/infra/db/mongo/models/apiKeys.model";
+import { ClientWithId } from "../../../shared/infra/db/mongo/models/client.model";
 
 export class ApiKeyService {
    protected apiKeyRepo: ApiKeyBaseRepo<ApiKeyWithId>;
@@ -134,9 +134,7 @@ export class ApiKeyService {
       }
    }
 
-   async getClientFromApiKey(
-      apiKeyValue: string,
-   ): Promise<{
+   async getClientFromApiKey(apiKeyValue: string): Promise<{
       client: { _id: Types.ObjectId; name: string; slug: string; isActive: boolean };
       apiKeyDoc: ApiKeyWithId;
    }> {

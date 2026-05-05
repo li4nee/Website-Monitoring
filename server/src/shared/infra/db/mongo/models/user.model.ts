@@ -1,6 +1,6 @@
 import mongoose, { HydratedDocument, InferSchemaType, Model, Types } from "mongoose";
-import { PasswordUtils } from "../utils/password.utils";
-import { USER_ROLE } from "../typings/base.typings";
+import { PasswordUtils } from "../../../../utils/password.utils";
+import { USER_ROLE } from "../../../../typings/auth.typings";
 
 const userSchema = new mongoose.Schema(
    {

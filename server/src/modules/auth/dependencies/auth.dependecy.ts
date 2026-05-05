@@ -2,8 +2,8 @@ import { AuthController } from "../controllers/auth.controller";
 import { AuthService } from "../services/auth.service";
 import { MongoUserRepo } from "../repos/user.repo";
 import { UserBaseRepo } from "../repos/userBase.repo";
-import { User, UserWithId } from "../../../shared/models/user.model";
 import { IAuthService } from "../contracts/IAuthService.contract";
+import { UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
 
 export interface AuthDependencies {
    repositories: { userRepository: UserBaseRepo<UserWithId> };

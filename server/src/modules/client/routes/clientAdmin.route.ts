@@ -1,7 +1,7 @@
 import { authenticate } from "../../../shared/middleware/authenticate.middleware";
 import { authorize } from "../../../shared/middleware/authorize.middleware";
 import { validateBody } from "../../../shared/middleware/zodValidators.middleware";
-import { USER_ROLE } from "../../../shared/typings/base.typings";
+import { USER_ROLE } from "../../../shared/typings/auth.typings";
 import InitializedClientContainer from "../dependencies/client.dependency";
 import { Router, Request, Response, NextFunction } from "express";
 import { CreateClientDTO } from "../dtos/createClient.dto";

@@ -90,7 +90,6 @@ const clientSchema = new mongoose.Schema(
    },
 );
 
-clientSchema.index({ slug: 1 });
 clientSchema.index({ isActive: 1 });
 
 export type Client = InferSchemaType<typeof clientSchema>;

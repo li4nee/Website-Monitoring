@@ -1,6 +1,6 @@
 import amqp from "amqplib";
-import { globalConfig } from "./global.config";
-import logger from "./logger.config";
+import { globalConfig } from "../config/global.config";
+import logger from "../config/logger.config";
 import { ResourceNotFoundError } from "../typings/error.typings";
 
 export enum AMQPConnectionStatus {

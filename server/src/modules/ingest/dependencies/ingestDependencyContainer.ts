@@ -1,5 +1,5 @@
-import { IEventProducer } from "../../../shared/contracts/infra/IEventProducer.contract";
-import { amqpAdapter, EventProducerContainer } from "../../../shared/infra/eventProducerContanier";
+import { IEventProducer } from "../../../shared/contracts/infra/messaging/IEventProducer.contract";
+import { amqpAdapter, EventProducerContainer } from "../../../shared/infra/messaging/eventProducerContanier";
 import { IIngestService } from "../contracts/IIngestService.contract";
 import { IngestController } from "../controllers/ingest.controller";
 import { IngestService } from "../services/ingest.service";

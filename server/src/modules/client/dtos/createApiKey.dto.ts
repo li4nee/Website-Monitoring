@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DEVELOPMENT_ENVIRONMENT } from "../../../shared/typings/base.typings";
+import { DEVELOPMENT_ENVIRONMENT } from "../../../shared/typings/auth.typings";
 
 export const CreateApiKeyDTO = z.object({
    name: z.string().min(1).max(255),

@@ -1,7 +1,7 @@
 import EventEmitter from "node:events";
-import { ResourceNotInitializedError } from "../typings/error.typings";
-import logger from "../config/logger.config";
 import { ConfirmChannel, ChannelModel } from "amqplib";
+import { ResourceNotInitializedError } from "../../typings/error.typings";
+import logger from "../../config/logger.config";
 
 export type AmqpConnection = {
    connect: () => Promise<{ connection: ChannelModel }>;

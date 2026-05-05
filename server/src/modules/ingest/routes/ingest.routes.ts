@@ -1,7 +1,7 @@
 import express, { NextFunction } from "express";
 import validateApiKey from "../../../shared/middleware/validateApiKey.middleware";
 import { HitDataDto } from "../dtos/hitData.dto";
-import { rateLimiter } from "../../../shared/utils/rateLimit.utilts";
+import { rateLimiter } from "../../../shared/infra/resilience/rateLimit.infra";
 import { validateBody } from "../../../shared/middleware/zodValidators.middleware";
 import type { Request, Response } from "express";
 import { IngestDependencies } from "../dependencies/ingestDependencyContainer";

@@ -1,5 +1,5 @@
 import logger from "../../../shared/config/logger.config";
-import { ApiKeyWithId, ApiKeyModel } from "../../../shared/models/apiKeys.model";
+import { ApiKeyModel, ApiKeyWithId } from "../../../shared/infra/db/mongo/models/apiKeys.model";
 import { ApiKeyBaseRepo } from "./apiKeyBase.repo";
 import { Types } from "mongoose";
 

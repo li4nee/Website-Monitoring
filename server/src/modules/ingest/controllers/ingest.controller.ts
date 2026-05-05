@@ -1,6 +1,6 @@
 import { NextFunction } from "express";
 import type { Response } from "express";
-import { ClientAuthorizedRequest } from "../../../shared/typings/base.typings";
+import { ClientAuthorizedRequest } from "../../../shared/typings/auth.typings";
 import { IIngestService } from "../contracts/IIngestService.contract";
 import logger from "../../../shared/config/logger.config";
 import { UnauthorizedError } from "../../../shared/typings/error.typings";

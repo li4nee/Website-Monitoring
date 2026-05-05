@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS endpoint_metrics (
     time_bucket TIMESTAMPTZ NOT NULL,
     total_hits INTEGER DEFAULT 0,
     error_hits INTEGER DEFAULT 0,
-    avg_latency DOUBLE PRECISION DEFAULT 0.000,
     min_latency DOUBLE PRECISION DEFAULT 0.000,
     max_latency DOUBLE PRECISION DEFAULT 0.000,
+    total_latency DOUBLE PRECISION DEFAULT 0.000,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     
@@ -17,9 +17,6 @@ CREATE TABLE IF NOT EXISTS endpoint_metrics (
 );
 
 -- POSTGRES LE UNIQUE BHAYE AAFAI INDEX BANAI DINCHA SO DONT NEED TO CREATE INDEX AGAIN FOR UNIQUE CONSTRAINT
-
--- CREATE INDEX IF NOT EXISTS idx_endpoint_metrics_client_id ON endpoint_metrics(client_id);
--- CREATE INDEX IF NOT EXISTS idx_endpoint_metrics_time ON endpoint_metrics(time_bucket);
 CREATE INDEX IF NOT EXISTS idx_endpoint_metrics_service ON endpoint_metrics(client_id, service_name);
 CREATE INDEX IF NOT EXISTS idx_endpoint_metrics_endpoint ON endpoint_metrics(client_id, service_name, endpoint);
 CREATE INDEX IF NOT EXISTS idx_metrics_client_service_time ON endpoint_metrics(client_id, service_name, time_bucket);

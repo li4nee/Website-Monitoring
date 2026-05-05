@@ -1,13 +1,13 @@
-import { globalConfig } from "../config/global.config";
-import { CircuitBreaker } from "./circuitBreaker";
+import { globalConfig } from "../../config/global.config";
 import { AmqpConnection, ConfirmChannelManager } from "./confirmChannelManager";
 import { EventProducer } from "./eventProducer";
-import { RetryStrategy } from "./retryStrategy";
-import amqpConnection from "../config/amqp.config";
+import amqpConnection from "../amqpConnection";
 import { ChannelModel } from "amqplib";
-import { ResourceNotInitializedError } from "../typings/error.typings";
-import { RetryStrategyOptions } from "../typings/retry.typings";
-import { CircuitBreakerOptions } from "../typings/circuitBreaker.typings";
+import { ResourceNotInitializedError } from "../../typings/error.typings";
+import { RetryStrategyOptions } from "../../typings/retry.typings";
+import { CircuitBreakerOptions } from "../../typings/circuitBreaker.typings";
+import { CircuitBreaker } from "../resilience/circuitBreaker.infra";
+import { RetryStrategy } from "../resilience/retryStrategy.infra";
 
 export const amqpAdapter: AmqpConnection = {
    async connect(): Promise<{ connection: ChannelModel }> {

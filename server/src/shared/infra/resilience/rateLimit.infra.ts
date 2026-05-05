@@ -1,5 +1,5 @@
 import rateLimit from "express-rate-limit";
-import { globalConfig } from "../config/global.config";
+import { globalConfig } from "../../config/global.config";
 export const rateLimiter = rateLimit({
    windowMs: globalConfig.rateLimit.windowMs,
    max: globalConfig.rateLimit.max,
