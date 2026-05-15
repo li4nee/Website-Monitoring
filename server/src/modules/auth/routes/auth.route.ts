@@ -12,8 +12,7 @@ import { LoginDTO } from "../dtos/sessionManagement.dto";
 import { authRateLimiter } from "../../../shared/infra/resilience/rateLimit.infra";
 
 const router = Router();
-const { controllers } = AuthDependenciesContainer;
-const { authController } = controllers;
+const { authController } = AuthDependenciesContainer.init().controllers;
 
 router.post(
    "/onboard-super-admin",

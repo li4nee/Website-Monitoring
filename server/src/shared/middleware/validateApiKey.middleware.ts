@@ -1,8 +1,10 @@
 import type { Response, NextFunction } from "express";
 import logger from "../config/logger.config";
 import { PermissionNotGranted, UnauthorizedError } from "../typings/error.typings";
-import InitializedClientContainer from "../../modules/client/dependencies/client.dependency";
+import ClientDependeniesContainer from "../../modules/client/dependencies/client.dependency";
 import { ClientAuthorizedRequest } from "../typings/auth.typings";
+
+const { apiKeyService } = ClientDependeniesContainer.init().services;
 
 /**
  * Middleware to validate API key from the request header.
@@ -20,7 +22,7 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
          throw new UnauthorizedError("API key is missing in the request header");
       }
 
-      const result = await InitializedClientContainer.services.apiKeyService.getClientFromApiKey(apiKey);
+      const result = await apiKeyService.getClientFromApiKey(apiKey);
 
       const client = result?.client;
       const apiKeyDoc = result?.apiKeyDoc;

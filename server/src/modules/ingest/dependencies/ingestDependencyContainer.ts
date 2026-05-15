@@ -25,4 +25,4 @@ export class IngestDependencyContainer {
    }
 }
 
-export const IngestDependencies = IngestDependencyContainer.init();
+export default IngestDependencyContainer;

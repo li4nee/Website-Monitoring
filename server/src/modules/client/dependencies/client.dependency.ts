@@ -49,6 +49,5 @@ class ClientDependeniesContainer {
    }
 }
 
-const initialized = ClientDependeniesContainer.init();
 export { ClientDependeniesContainer };
-export default initialized;
+export default ClientDependeniesContainer;

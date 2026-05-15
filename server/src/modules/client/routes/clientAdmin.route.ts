@@ -2,17 +2,15 @@ import { authenticate } from "../../../shared/middleware/authenticate.middleware
 import { authorize } from "../../../shared/middleware/authorize.middleware";
 import { mongoObjectId, validateBody, validateParams } from "../../../shared/middleware/zodValidators.middleware";
 import { USER_ROLE } from "../../../shared/typings/auth.typings";
-import InitializedClientContainer from "../dependencies/client.dependency";
+import ClientDependeniesContainer from "../dependencies/client.dependency";
 import { Router, Request, Response, NextFunction } from "express";
 import { CreateClientDTO } from "../dtos/createClient.dto";
 import { CreateClientUserDTO } from "../dtos/createClientUser.dto";
 import { CreateApiKeyDTO } from "../dtos/createApiKey.dto";
 import { clientAndKeyParamSchema, clientIdParamSchema } from "../dtos/clientIdAndKeyParams.dto";
 
-
 const router = Router();
-const { controllers } = InitializedClientContainer;
-const { clientController } = controllers;
+const { clientController } = ClientDependeniesContainer.init().controllers;
 
 /**
  * @route POST /api/v1/admin/clients/onboard

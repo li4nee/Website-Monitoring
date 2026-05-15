@@ -2,7 +2,9 @@ import { globalConfig } from "../../shared/config/global.config";
 import logger from "../../shared/config/logger.config";
 import { RetryStrategy } from "../../shared/infra/resilience/retryStrategy.infra";
 import { RetryStrategyOptions } from "../../shared/typings/retry.typings";
-import { processorDependencies } from "./dependencies/processor.dependency";
+import ProcessorDependenciesContainer from "./dependencies/processor.dependency";
+
+const processorDependencies = ProcessorDependenciesContainer.init();
 
 class ConsumerStartup {
    private static isShuttingDown = false;

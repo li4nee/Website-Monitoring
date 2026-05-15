@@ -74,4 +74,4 @@ export class ProcessorDependenciesContainer {
    }
 }
 
-export const processorDependencies = ProcessorDependenciesContainer.init();
+export default ProcessorDependenciesContainer;

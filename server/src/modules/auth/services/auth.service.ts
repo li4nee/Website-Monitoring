@@ -22,13 +22,14 @@ const DEFAULT_PERMISSIONS = {
 
 export class AuthService {
    protected userRepo: UserBaseRepo<UserWithId>;
-   private jwtUtils = JwtUtils;
+   private jwtUtils: typeof JwtUtils;
 
-   constructor(userRepo: UserBaseRepo<UserWithId>) {
+   constructor(userRepo: UserBaseRepo<UserWithId>, jwtUtils: typeof JwtUtils = JwtUtils) {
       if (!userRepo) {
          throw new ResourceNotInitializedError("User repository must be provided to AuthService");
       }
       this.userRepo = userRepo;
+      this.jwtUtils = jwtUtils;
    }
 
    private generateToken(user: UserWithId): string {

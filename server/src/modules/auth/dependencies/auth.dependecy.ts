@@ -30,6 +30,5 @@ class AuthDependenciesContainer {
    }
 }
 
-const initialized = AuthDependenciesContainer.init();
 export { AuthDependenciesContainer };
-export default initialized;
+export default AuthDependenciesContainer;
