@@ -94,7 +94,7 @@ export class ProcessorService {
                `[ProcessorService] Attempt ${attempt + 1} failed to upsert metrics for event ${eventData.eventId}. Error: ${error instanceof Error ? error.stack : error}`,
             );
             // 5 second delay before retrying . This to handle transient temporary issuses like db ko connection glitch or something like that.
-            if (attempt < 1) {
+            if (attempt < this.postgresUpsertRetryAttempts - 1) {
                await new Promise((resolve) => setTimeout(resolve, 5000));
             }
          }
