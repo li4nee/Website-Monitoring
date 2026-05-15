@@ -62,6 +62,24 @@ export class AuthorizationUtils {
       throw new PermissionNotGranted("You are not authorized to view raw logs.");
    }
 
+   static canExportData(user: UserInsideAuthorizedRequest, targetClientId: string): boolean {
+      if (user.role === USER_ROLE.SUPER_ADMIN) {
+         return true;
+      }
+
+      if (user.role === USER_ROLE.CLIENT_ADMIN || user.role === USER_ROLE.CLIENT_USER) {
+         if (!user.clientId || user.clientId !== targetClientId) {
+            throw new PermissionNotGranted("You are not authorized to export data for this client.");
+         }
+         if (!user.permissions.canExportData) {
+            throw new PermissionNotGranted("You do not have permission to export data.");
+         }
+         return true;
+      }
+
+      throw new PermissionNotGranted("You are not authorized to export data.");
+   }
+
    static canViewAnalytics(user: UserInsideAuthorizedRequest, targetClientId: string): boolean {
       // Super admin has full access to all clients.
       if (user.role === USER_ROLE.SUPER_ADMIN) {

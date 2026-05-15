@@ -7,7 +7,7 @@ import { ApiHitsBaseRepo } from "../../processor/repos/apiHitsBase.repo";
 import { ApiHitsWithId } from "../../../shared/infra/db/mongo/models/apiHits.model";
 import { EndPointMetricsBaseRepo } from "../../processor/repos/endpointMetricsBase.repo";
 import { IAnalyticsService } from "../contracts/IAnalyticsService.contract";
-import { AnalyticsTimeRangeQueryDTOType, AnalyticsTimeSeriesQueryDTOType, EndpointDrilldownQueryDTOType, RawLogsQueryDTOType } from "../dtos/analyticsQuery.dto";
+import { AnalyticsTimeRangeQueryDTOType, AnalyticsTimeSeriesQueryDTOType, EndpointDrilldownQueryDTOType, ExportQueryDTOType, RawLogsQueryDTOType, ServicesQueryDTOType } from "../dtos/analyticsQuery.dto";
 import { EndpointSummary, OverviewStats, RawLogsPage, TimeSeriesBucket } from "../dtos/analyticsResponse.dto";
 
 export class AnalyticsService implements IAnalyticsService {
@@ -129,7 +129,7 @@ export class AnalyticsService implements IAnalyticsService {
 
    async getEndpointDrilldown(user: UserInsideAuthorizedRequest, query: EndpointDrilldownQueryDTOType): Promise<TimeSeriesBucket[]> {
       try {
-         AuthorizationUtils.canViewAnalytics(user, query.clientId);
+         AuthorizationUtils.canViewRawLogs(user, query.clientId);
          logger.info(
             `[AnalyticsService] Fetching endpoint drilldown for clientId: ${query.clientId} endpoint: ${query.endpoint}`,
          );
@@ -143,6 +143,28 @@ export class AnalyticsService implements IAnalyticsService {
          );
       } catch (error) {
          logger.error("[AnalyticsService] Error fetching endpoint drilldown", { error, query });
+         throw error;
+      }
+   }
+
+   async getServices(user: UserInsideAuthorizedRequest, query: ServicesQueryDTOType): Promise<string[]> {
+      try {
+         AuthorizationUtils.canViewAnalytics(user, query.clientId);
+         logger.info(`[AnalyticsService] Fetching distinct services for clientId: ${query.clientId}`);
+         return await this.apiHitsRepo.getDistinctServices(query.clientId);
+      } catch (error) {
+         logger.error("[AnalyticsService] Error fetching distinct services", { error, query });
+         throw error;
+      }
+   }
+
+   async exportLogs(user: UserInsideAuthorizedRequest, query: ExportQueryDTOType, onRow: (csvRow: string) => void): Promise<void> {
+      try {
+         AuthorizationUtils.canExportData(user, query.clientId);
+         logger.info(`[AnalyticsService] Exporting logs as CSV for clientId: ${query.clientId}`);
+         await this.apiHitsRepo.streamRawLogsAsCsv(query, onRow);
+      } catch (error) {
+         logger.error("[AnalyticsService] Error exporting logs", { error, query });
          throw error;
       }
    }

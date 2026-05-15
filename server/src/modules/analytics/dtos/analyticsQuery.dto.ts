@@ -68,6 +68,36 @@ export const RawLogsQueryDTO = z.object({
 
 export type RawLogsQueryDTOType = z.infer<typeof RawLogsQueryDTO>;
 
+export const ServicesQueryDTO = z.object({
+   clientId: z.string().min(1, "clientId is required"),
+});
+
+export type ServicesQueryDTOType = z.infer<typeof ServicesQueryDTO>;
+
+export const ExportQueryDTO = z.object({
+   clientId: z.string().min(1, "clientId is required"),
+   serviceName: z.string().optional(),
+   endpoint: z.string().optional(),
+   method: z.string().optional(),
+   statusCode: z
+      .string()
+      .optional()
+      .transform((val) => (val ? parseInt(val, 10) : undefined))
+      .refine((val) => val === undefined || !isNaN(val), { message: "statusCode must be a number" }),
+   startTime: z
+      .string()
+      .optional()
+      .transform((val) => (val ? new Date(val) : undefined))
+      .refine((val) => val === undefined || !isNaN(val!.getTime()), { message: "startTime must be a valid ISO date string" }),
+   endTime: z
+      .string()
+      .optional()
+      .transform((val) => (val ? new Date(val) : undefined))
+      .refine((val) => val === undefined || !isNaN(val!.getTime()), { message: "endTime must be a valid ISO date string" }),
+});
+
+export type ExportQueryDTOType = z.infer<typeof ExportQueryDTO>;
+
 export const EndpointDrilldownQueryDTO = z.object({
    clientId: z.string().min(1, "clientId is required"),
    serviceName: z.string().min(1, "serviceName is required"),

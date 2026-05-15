@@ -1,6 +1,6 @@
 import { EventDataType } from "../../../shared/typings/messaging.typings";
 import { RawLogsPage } from "../../../modules/analytics/dtos/analyticsResponse.dto";
-import { RawLogsQueryDTOType } from "../../../modules/analytics/dtos/analyticsQuery.dto";
+import { ExportQueryDTOType, RawLogsQueryDTOType } from "../../../modules/analytics/dtos/analyticsQuery.dto";
 import { TimeSeriesBucket } from "../../../modules/analytics/dtos/analyticsResponse.dto";
 
 /**
@@ -26,4 +26,6 @@ export abstract class ApiHitsBaseRepo<T> {
       startTime?: Date,
       endTime?: Date,
    ): Promise<TimeSeriesBucket[]>;
+   abstract getDistinctServices(clientId: string): Promise<string[]>;
+   abstract streamRawLogsAsCsv(query: ExportQueryDTOType, onRow: (csvRow: string) => void): Promise<void>;
 }

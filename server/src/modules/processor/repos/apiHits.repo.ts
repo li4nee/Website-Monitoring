@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import logger from "../../../shared/config/logger.config";
 import { ApiHitModel, ApiHitsWithId } from "../../../shared/infra/db/mongo/models/apiHits.model";
 import { EventDataType } from "../../../shared/typings/messaging.typings";
-import { RawLogsQueryDTOType } from "../../../modules/analytics/dtos/analyticsQuery.dto";
+import { ExportQueryDTOType, RawLogsQueryDTOType } from "../../../modules/analytics/dtos/analyticsQuery.dto";
 import { RawLogEntry, RawLogsPage, TimeSeriesBucket } from "../../../modules/analytics/dtos/analyticsResponse.dto";
 import { ApiHitsBaseRepo } from "./apiHitsBase.repo";
 
@@ -173,6 +173,62 @@ export class MongoApiHitsRepo extends ApiHitsBaseRepo<ApiHitsWithId> {
          }));
       } catch (error) {
          logger.error(`Failed to get endpoint time series: ${error instanceof Error ? error.message : "Unknown error"}`);
+         throw error;
+      }
+   }
+
+   async getDistinctServices(clientId: string): Promise<string[]> {
+      try {
+         const services = await this.model.distinct("serviceName", {
+            clientId: new Types.ObjectId(clientId),
+         });
+         return services.sort();
+      } catch (error) {
+         logger.error(`Failed to get distinct services: ${error instanceof Error ? error.message : "Unknown error"}`);
+         throw error;
+      }
+   }
+
+   async streamRawLogsAsCsv(query: ExportQueryDTOType, onRow: (csvRow: string) => void): Promise<void> {
+      try {
+         const filter: Record<string, any> = {
+            clientId: new Types.ObjectId(query.clientId),
+         };
+
+         if (query.serviceName) filter.serviceName = query.serviceName;
+         if (query.endpoint) filter.endPoint = query.endpoint;
+         if (query.method) filter.method = query.method;
+         if (query.statusCode !== undefined) filter.statusCode = query.statusCode;
+
+         const timeFilter: Record<string, Date> = {};
+         if (query.startTime) timeFilter.$gte = query.startTime;
+         if (query.endTime) timeFilter.$lte = query.endTime;
+         if (Object.keys(timeFilter).length > 0) filter.timestamp = timeFilter;
+
+         const cursor = this.model
+            .find(filter)
+            .sort({ timestamp: -1 })
+            .select("eventId timestamp serviceName endPoint method statusCode latencyInMs ipV4 ipV6 userAgent")
+            .lean()
+            .cursor();
+
+         for await (const doc of cursor) {
+            const row = [
+               doc.eventId,
+               doc.timestamp.toISOString(),
+               doc.serviceName,
+               doc.endPoint,
+               doc.method,
+               doc.statusCode,
+               doc.latencyInMs,
+               doc.ipV4 ?? "",
+               doc.ipV6 ?? "",
+               `"${(doc.userAgent ?? "").replace(/"/g, '""')}"`,
+            ].join(",");
+            onRow(row);
+         }
+      } catch (error) {
+         logger.error(`Failed to stream raw logs as CSV: ${error instanceof Error ? error.message : "Unknown error"}`);
          throw error;
       }
    }
