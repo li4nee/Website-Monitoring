@@ -32,6 +32,7 @@ export class EventConsumer {
    private prefetchCount = globalConfig.consumer.prefetchCount;
    private isRunning = false;
    private channel: amqp.Channel | null = null;
+   private activeMessages = 0;
 
    private stats: eventConsumerStats = {
       processed: 0,
@@ -219,6 +220,7 @@ export class EventConsumer {
          return;
       }
 
+      this.activeMessages++;
       const startTime = Date.now();
       let messageData = null;
 
@@ -250,7 +252,9 @@ export class EventConsumer {
          // Keep track which eventType is causing more failure.
          this.failedEventTypesAndCount.delete(messageData.eventType);
       } catch (error) {
-         await this.handleProcessingError(error, msg, messageData, startTime);
+         await this.handleProcessingError(error, msg, messageData);
+      } finally {
+         this.activeMessages--;
       }
    }
 
@@ -258,7 +262,6 @@ export class EventConsumer {
       error: unknown,
       msg: amqp.ConsumeMessage,
       messageData: ParsedMessageType | null,
-      startTime: number,
    ) {
       const retryCount = messageData?.retryCount || 0;
       const messageId = messageData?.messageId || msg.properties.messageId || "unknown";
@@ -387,6 +390,16 @@ export class EventConsumer {
       this.isRunning = false;
 
       try {
+         // Wait like 30 seconds for processing of mid processing message before shutting down.
+         const drainDeadline = Date.now() + 30_000;
+         while (this.activeMessages > 0 && Date.now() < drainDeadline) {
+            logger.info(`[Event Consumer] Draining ${this.activeMessages} active message`);
+            await new Promise((res) => setTimeout(res, 200));
+         }
+         if (this.activeMessages > 0) {
+            logger.warn(`[Event Consumer] Shutdown timed out with ${this.activeMessages} message still active`);
+         }
+
          await this.channel?.close();
          this.channel = null;
          await this.amqpConnection.close();
