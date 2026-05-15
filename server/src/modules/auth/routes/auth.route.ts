@@ -10,6 +10,7 @@ import { authorize } from "../../../shared/middleware/authorize.middleware";
 import { USER_ROLE } from "../../../shared/typings/auth.typings";
 import { LoginDTO } from "../dtos/sessionManagement.dto";
 import { authRateLimiter } from "../../../shared/infra/resilience/rateLimit.infra";
+import { ChangePasswordDTO } from "../dtos/changePassword.dto";
 
 const router = Router();
 const { authController } = AuthDependenciesContainer.init().controllers;
@@ -36,5 +37,12 @@ router.post("/login", authRateLimiter, validateBody(LoginDTO), (req: Request, re
 router.get("/profile", authenticate, (req: Request, res: Response, next: NextFunction) => authController.profile(req, res, next));
 
 router.post("/logout", authenticate, (req: Request, res: Response, next: NextFunction) => authController.logout(req, res, next));
+
+router.patch(
+   "/change-password",
+   authenticate,
+   validateBody(ChangePasswordDTO),
+   (req: Request, res: Response, next: NextFunction) => authController.changePassword(req, res, next),
+);
 
 export default router;

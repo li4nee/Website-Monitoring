@@ -10,6 +10,7 @@ export abstract class UserBaseRepo<T extends { _id: any }> {
    abstract findByEmail(email: string, includeOnlyId?: boolean): Promise<T | null>;
    abstract findByUsername(username: string, includeOnlyId?: boolean): Promise<T | null>;
    abstract findById(id: string, includeOnlyId?: boolean): Promise<T | null>;
+   abstract findByClientId(clientId: string, limit: number, cursor?: string): Promise<{ data: T[]; nextCursor?: string }>;
    abstract update(id: string, data: Partial<T>): Promise<T | null>;
    abstract delete(id: string): Promise<void>;
    abstract findIfAnyExists(isSuperAdmin?: boolean, email?: string): Promise<boolean>;

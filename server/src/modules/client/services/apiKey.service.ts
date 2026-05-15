@@ -136,6 +136,28 @@ export class ApiKeyService {
       }
    }
 
+   async revokeApiKey(clientId: string, apiKeyId: string, requestedBy: UserInsideAuthorizedRequest): Promise<void> {
+      try {
+         if (!AuthorizationUtils.canCreateApiKeys(requestedBy, clientId))
+            throw new PermissionNotGranted("Permission denied to revoke API keys for this client.");
+
+         const client = await this.clientRepo.findById(clientId, true);
+         if (!client) throw new InvalidInputError("Client not found.");
+
+         const apiKey = await this.apiKeyRepo.findById(apiKeyId, true, false);
+         if (!apiKey) throw new InvalidInputError("API key not found.");
+
+         if (apiKey.clientId.toString() !== clientId)
+            throw new PermissionNotGranted("This API key does not belong to this client.");
+
+         await this.apiKeyRepo.delete(apiKeyId);
+         logger.info(`API key revoked: ${apiKeyId} for clientId: ${clientId} by user: ${requestedBy.id}`);
+      } catch (error) {
+         logger.error("Error revoking API key", { error, clientId, apiKeyId, requestedBy });
+         throw error;
+      }
+   }
+
    async getClientFromApiKey(apiKeyValue: string): Promise<{
       client: { _id: Types.ObjectId; name: string; slug: string; isActive: boolean };
       apiKeyDoc: ApiKeyWithId;

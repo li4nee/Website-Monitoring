@@ -4,7 +4,6 @@ import { ApiHitDataDtoType } from "../dtos/hitData.dto";
 import { v4 as uuidv4 } from "uuid";
 import { IngestApiHitResponseDto } from "../dtos/ingestApiHitResponse.dto";
 import logger from "../../../shared/config/logger.config";
-import { time, timeStamp } from "node:console";
 export class IngestService {
    private eventProducer: IEventProducer;
    constructor(eventProducer: IEventProducer) {

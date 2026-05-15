@@ -1,5 +1,6 @@
 import { User, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
 import { RegistrationDTOType } from "../dtos/onboarding.dto";
+import { ChangePasswordDTOType } from "../dtos/changePassword.dto";
 import { UserResponseDto } from "../dtos/userResponse.dto";
 
 export interface IAuthService {
@@ -12,4 +13,6 @@ export interface IAuthService {
    getProfile(userId: string): Promise<Omit<User, "password" | "trash" | "isActive">>;
 
    isSuperAdmin(id: string): Promise<boolean>;
+
+   changePassword(userId: string, data: ChangePasswordDTOType): Promise<void>;
 }

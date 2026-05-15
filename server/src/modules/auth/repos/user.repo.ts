@@ -65,6 +65,37 @@ export class MongoUserRepo extends UserBaseRepo<UserWithId> {
       return !!doc;
    }
 
+   async findByClientId(
+      clientId: string,
+      limit: number = 20,
+      cursor?: string,
+   ): Promise<{ data: UserWithId[]; nextCursor?: string }> {
+      const filter: Record<string, any> = { clientId, trash: false };
+
+      if (cursor) {
+         filter._id = { $lt: cursor };
+      }
+
+      const safeLimit = Math.min(Math.max(limit, 1), 100);
+      const docs = await this.model
+         .find(filter)
+         .sort({ _id: -1 })
+         .limit(safeLimit + 1)
+         .select("-password -__v");
+
+      let nextCursor: string | undefined;
+      let data: UserWithId[];
+
+      if (docs.length > safeLimit) {
+         nextCursor = docs[safeLimit]._id.toString();
+         data = docs.slice(0, safeLimit).map((d) => d.toObject() as UserWithId);
+      } else {
+         data = docs.map((d) => d.toObject() as UserWithId);
+      }
+
+      return { data, nextCursor };
+   }
+
    async findUserRole(id: string): Promise<USER_ROLE | null | undefined> {
       const user = await this.model.findById(id, { role: 1 });
       return user?.role;

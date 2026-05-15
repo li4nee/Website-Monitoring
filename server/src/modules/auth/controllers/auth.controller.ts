@@ -69,4 +69,13 @@ export class AuthController {
          next(error);
       }
    }
+
+   async changePassword(req: AuthorizedRequest, res: Response, next: NextFunction) {
+      try {
+         await this.authService.changePassword(req.user!.id, req.body);
+         return res.status(200).json(ResponseFormatter.success("Password changed successfully.", 200, null));
+      } catch (error) {
+         next(error);
+      }
+   }
 }

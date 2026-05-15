@@ -15,6 +15,7 @@ import AuthRouter from "./modules/auth/routes/auth.route";
 import ClientAdminRouter from "./modules/client/routes/clientAdmin.route";
 import IngestRouter from "./modules/ingest/routes/ingest.routes";
 import AnalyticsRouter from "./modules/analytics/routes/analytics.route";
+import AlertingRouter from "./modules/alerting/routes/alerting.route";
 import { CentralizedRequestLogger } from "./shared/middleware/requestLogger.middleware";
 const app = express();
 
@@ -108,6 +109,7 @@ app.use("/api/v1/auth", AuthRouter);
 app.use("/api/v1/admin/clients", ClientAdminRouter);
 app.use("/api/v1/ingest", IngestRouter);
 app.use("/api/v1/analytics", AnalyticsRouter);
+app.use("/api/v1/alerting", AlertingRouter);
 /**
  * 404 handler
  */

@@ -1,10 +1,11 @@
 import { globalConfig } from "../../../shared/config/global.config";
 import { User, UserDocument, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
-import { PermissionNotGranted, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
+import { InvalidInputError, PermissionNotGranted, ResourceNotFoundError, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { JwtUtils } from "../../../shared/utils/jwt.utils";
 import { UserBaseRepo } from "../repos/userBase.repo";
 import logger from "../../../shared/config/logger.config";
 import { RegistrationDTOType } from "../dtos/onboarding.dto";
+import { ChangePasswordDTOType } from "../dtos/changePassword.dto";
 import { PasswordUtils } from "../../../shared/utils/password.utils";
 import { USER_ROLE } from "../../../shared/typings/auth.typings";
 import { UserResponseDto } from "../dtos/userResponse.dto";
@@ -173,5 +174,27 @@ export class AuthService {
    async isSuperAdmin(id: string): Promise<boolean> {
       const role = await this.userRepo.findUserRole(id);
       return role === USER_ROLE.SUPER_ADMIN;
+   }
+
+   async changePassword(userId: string, data: ChangePasswordDTOType): Promise<void> {
+      try {
+         // findById strips the password field, so we fetch by email after getting the email
+         const userMeta = await this.userRepo.findById(userId);
+         if (!userMeta) throw new ResourceNotFoundError("User not found.");
+
+         // fetch with password included via findByEmail
+         const userWithPassword = await this.userRepo.findByEmail(userMeta.email);
+         if (!userWithPassword) throw new ResourceNotFoundError("User not found.");
+
+         const isValid = await PasswordUtils.comparePassword(data.currentPassword, userWithPassword.password);
+         if (!isValid) throw new InvalidInputError("Current password is incorrect.");
+
+         const hashed = await PasswordUtils.hashPassword(data.newPassword);
+         await this.userRepo.update(userId, { password: hashed });
+         logger.info(`[AuthService] Password changed for user: ${userId}`);
+      } catch (error) {
+         logger.error("[AuthService] Error changing password", { error, userId });
+         throw error;
+      }
    }
 }

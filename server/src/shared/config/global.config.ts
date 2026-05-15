@@ -103,6 +103,17 @@ export const globalConfig = {
       },
    },
 
+   alertingWorker: {
+      pollIntervalMs: parseInt(process.env.ALERTING_WORKER_POLL_INTERVAL_MS || "60000", 10), // 1 minute
+      mongoPostgresConnectionMaxRetryAttempts: parseInt(process.env.ALERTING_WORKER_DB_MAX_RETRY_ATTEMPTS || "5", 10),
+      startupRetryStrategyOptions: {
+         maxRetries: parseInt(process.env.ALERTING_WORKER_STARTUP_MAX_RETRIES || "5", 10),
+         baseRetryDelayInMs: parseInt(process.env.ALERTING_WORKER_STARTUP_BASE_RETRY_DELAY_MS || "1000", 10),
+         maxRetryDelayInMs: parseInt(process.env.ALERTING_WORKER_STARTUP_MAX_RETRY_DELAY_MS || "30000", 10),
+         jitterFactor: parseFloat(process.env.ALERTING_WORKER_STARTUP_JITTER_FACTOR || "0.3"),
+      },
+   },
+
    cookieOptions: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

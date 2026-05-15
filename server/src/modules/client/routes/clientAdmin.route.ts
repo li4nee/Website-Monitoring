@@ -8,6 +8,8 @@ import { CreateClientDTO } from "../dtos/createClient.dto";
 import { CreateClientUserDTO } from "../dtos/createClientUser.dto";
 import { CreateApiKeyDTO } from "../dtos/createApiKey.dto";
 import { clientAndKeyParamSchema, clientIdParamSchema } from "../dtos/clientIdAndKeyParams.dto";
+import { UpdateClientDTO } from "../dtos/updateClient.dto";
+import { UpdateUserPermissionsDTO, userIdParamSchema } from "../dtos/updateUser.dto";
 
 const router = Router();
 const { clientController } = ClientDependeniesContainer.init().controllers;
@@ -77,6 +79,111 @@ router.get(
    authorize([USER_ROLE.SUPER_ADMIN, USER_ROLE.CLIENT_ADMIN]),
    validateParams(clientAndKeyParamSchema),
    (req: Request, res: Response, next: NextFunction) => clientController.getApiKeyFromId(req, res, next),
+);
+
+/**
+ * @route DELETE /api/v1/admin/clients/:clientId/api-keys/:id
+ * @desc Revoke an API key
+ * @access Private (Super Admin and Client Admin with canCreateApiKeys)
+ */
+router.delete(
+   "/:clientId/api-keys/:id",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN, USER_ROLE.CLIENT_ADMIN]),
+   validateParams(clientAndKeyParamSchema),
+   (req: Request, res: Response, next: NextFunction) => clientController.revokeApiKey(req, res, next),
+);
+
+/**
+ * @route GET /api/v1/admin/clients
+ * @desc List all clients
+ * @access Private (Super Admin only)
+ */
+router.get(
+   "/",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN]),
+   (req: Request, res: Response, next: NextFunction) => clientController.listClients(req, res, next),
+);
+
+/**
+ * @route GET /api/v1/admin/clients/:clientId
+ * @desc Get a single client
+ * @access Private (Super Admin or own Client Admin)
+ */
+router.get(
+   "/:clientId",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN, USER_ROLE.CLIENT_ADMIN]),
+   validateParams(clientIdParamSchema),
+   (req: Request, res: Response, next: NextFunction) => clientController.getClient(req, res, next),
+);
+
+/**
+ * @route PATCH /api/v1/admin/clients/:clientId
+ * @desc Update client details
+ * @access Private (Super Admin only)
+ */
+router.patch(
+   "/:clientId",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN]),
+   validateParams(clientIdParamSchema),
+   validateBody(UpdateClientDTO),
+   (req: Request, res: Response, next: NextFunction) => clientController.updateClient(req, res, next),
+);
+
+/**
+ * @route GET /api/v1/admin/clients/:clientId/users
+ * @desc List all users for a client
+ * @access Private (Super Admin and Client Admin with canManageUsers)
+ */
+router.get(
+   "/:clientId/users",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN, USER_ROLE.CLIENT_ADMIN]),
+   validateParams(clientIdParamSchema),
+   (req: Request, res: Response, next: NextFunction) => clientController.listUsersForClient(req, res, next),
+);
+
+/**
+ * @route PATCH /api/v1/admin/clients/:clientId/users/:userId/permissions
+ * @desc Update a user's permissions
+ * @access Private (Super Admin and Client Admin with canManageUsers)
+ */
+router.patch(
+   "/:clientId/users/:userId/permissions",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN, USER_ROLE.CLIENT_ADMIN]),
+   validateParams(userIdParamSchema),
+   validateBody(UpdateUserPermissionsDTO),
+   (req: Request, res: Response, next: NextFunction) => clientController.updateUserPermissions(req, res, next),
+);
+
+/**
+ * @route PATCH /api/v1/admin/clients/:clientId/users/:userId/activate
+ * @desc Activate a user
+ * @access Private (Super Admin and Client Admin with canManageUsers)
+ */
+router.patch(
+   "/:clientId/users/:userId/activate",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN, USER_ROLE.CLIENT_ADMIN]),
+   validateParams(userIdParamSchema),
+   (req: Request, res: Response, next: NextFunction) => clientController.setUserActive(req, res, next),
+);
+
+/**
+ * @route PATCH /api/v1/admin/clients/:clientId/users/:userId/deactivate
+ * @desc Deactivate a user
+ * @access Private (Super Admin and Client Admin with canManageUsers)
+ */
+router.patch(
+   "/:clientId/users/:userId/deactivate",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN, USER_ROLE.CLIENT_ADMIN]),
+   validateParams(userIdParamSchema),
+   (req: Request, res: Response, next: NextFunction) => clientController.setUserActive(req, res, next),
 );
 
 export default router;

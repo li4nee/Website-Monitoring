@@ -6,7 +6,8 @@
    "scripts": {
       "test": "echo \"Error: no test specified\" && exit 1",
       "dev": "nodemon --watch src --ext ts --exec ts-node src/index.ts",
-      "dev:consumer" : "nodemon --watch src --ext ts --exec ts-node src/modules/processor/consumerStartup.ts"
+      "dev:consumer" : "nodemon --watch src --ext ts --exec ts-node src/modules/processor/consumerStartup.ts",
+      "dev:alerting": "nodemon --watch src --ext ts --exec ts-node src/modules/alerting/worker/alertingWorkerStartup.ts"
    },
    "keywords": [],
    "author": "",

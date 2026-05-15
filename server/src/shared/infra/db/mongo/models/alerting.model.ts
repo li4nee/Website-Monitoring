@@ -52,6 +52,11 @@ const alertingSchema = new mongoose.Schema(
          type: mongoose.Schema.Types.Mixed,
       },
 
+      lastFiredAt: {
+         type: Date,
+         default: null,
+      },
+
       createdBy: {
          type: mongoose.Schema.Types.ObjectId,
          ref: "User",

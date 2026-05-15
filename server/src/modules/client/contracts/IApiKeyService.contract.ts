@@ -23,4 +23,6 @@ export interface IApiKeyService {
       client: { _id: Types.ObjectId; name: string; slug: string; isActive: boolean };
       apiKeyDoc: ApiKeyWithId;
    }>;
+
+   revokeApiKey(clientId: string, apiKeyId: string, requestedBy: UserInsideAuthorizedRequest): Promise<void>;
 }
