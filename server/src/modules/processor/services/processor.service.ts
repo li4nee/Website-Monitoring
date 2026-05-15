@@ -17,9 +17,13 @@ export enum TimeBucketInterval {
 export class ProcessorService {
    private apiHitRepo: ApiHitsBaseRepo<ApiHitsWithId>;
    private endPointMetricsRepo: EndPointMetricsBaseRepo<EndpointMetrics>;
+   private postgresUpsertRetryAttempts: number;
 
-   private postgresUpsertRetryAttempts: number = globalConfig.consumer.postGresMetricUpsertRetryAttempts;
-   constructor(apiHitRepo: ApiHitsBaseRepo<ApiHitsWithId>, endPointMetricsRepo: EndPointMetricsBaseRepo<EndpointMetrics>) {
+   constructor(
+      apiHitRepo: ApiHitsBaseRepo<ApiHitsWithId>,
+      endPointMetricsRepo: EndPointMetricsBaseRepo<EndpointMetrics>,
+      upsertRetryAttempts: number = globalConfig.consumer.postGresMetricUpsertRetryAttempts,
+   ) {
       if (!apiHitRepo) {
          throw new ResourceNotInitializedError("[ProcessorService] ApiHits repository must be provided to ProcessorService");
       }
@@ -30,6 +34,7 @@ export class ProcessorService {
       }
       this.apiHitRepo = apiHitRepo;
       this.endPointMetricsRepo = endPointMetricsRepo;
+      this.postgresUpsertRetryAttempts = upsertRetryAttempts;
    }
 
    /**

@@ -1,12 +1,12 @@
 import { globalConfig } from "../../../shared/config/global.config";
-import { User, UserDocument, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
+import { User, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
 import { PermissionNotGranted, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { JwtUtils } from "../../../shared/utils/jwt.utils";
 import { UserBaseRepo } from "../repos/userBase.repo";
 import logger from "../../../shared/config/logger.config";
 import { RegistrationDTOType } from "../dtos/onboarding.dto";
 import { PasswordUtils } from "../../../shared/utils/password.utils";
-import { USER_ROLE } from "../../../shared/typings/auth.typings";
+import { IPasswordUtils, JwtConfig, USER_ROLE } from "../../../shared/typings/auth.typings";
 import { UserResponseDto } from "../dtos/userResponse.dto";
 
 type UniqueCheck = "email" | "username" | "both";
@@ -23,13 +23,22 @@ const DEFAULT_PERMISSIONS = {
 export class AuthService {
    protected userRepo: UserBaseRepo<UserWithId>;
    private jwtUtils: typeof JwtUtils;
+   private jwtConfig: JwtConfig;
+   private passwordUtils: IPasswordUtils;
 
-   constructor(userRepo: UserBaseRepo<UserWithId>, jwtUtils: typeof JwtUtils = JwtUtils) {
+   constructor(
+      userRepo: UserBaseRepo<UserWithId>,
+      jwtUtils: typeof JwtUtils = JwtUtils,
+      jwtConfig: JwtConfig = { secret: globalConfig.jwt.secret, expiresIn: globalConfig.jwt.expiresIn },
+      passwordUtils: IPasswordUtils = PasswordUtils,
+   ) {
       if (!userRepo) {
          throw new ResourceNotInitializedError("User repository must be provided to AuthService");
       }
       this.userRepo = userRepo;
       this.jwtUtils = jwtUtils;
+      this.jwtConfig = jwtConfig;
+      this.passwordUtils = passwordUtils;
    }
 
    private generateToken(user: UserWithId): string {
@@ -40,7 +49,7 @@ export class AuthService {
          clientId: user.clientId ? user.clientId.toString() : undefined,
       };
 
-      return this.jwtUtils.generateToken(payload, globalConfig.jwt.secret, globalConfig.jwt.expiresIn);
+      return this.jwtUtils.generateToken(payload, this.jwtConfig.secret, this.jwtConfig.expiresIn);
    }
 
    private formatUserResponseWithoutPassword(user: User): Omit<User, "password" | "trash" | "isActive"> {
@@ -140,7 +149,7 @@ export class AuthService {
             throw new PermissionNotGranted("User account is inactive. Please contact administrator.");
          }
 
-         const isPasswordValid = await PasswordUtils.comparePassword(loginData.password, user.password);
+         const isPasswordValid = await this.passwordUtils.comparePassword(loginData.password, user.password);
 
          if (!isPasswordValid) {
             logger.warn(`Invalid password for: ${loginData.email}`);

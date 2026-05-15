@@ -80,3 +80,12 @@ export interface JwtPayload {
 export interface MaskedJwtPayload extends Omit<JwtPayload, "permissions"> {
    permissions: number;
 }
+
+export interface JwtConfig {
+   secret: string;
+   expiresIn: import("ms").StringValue | number;
+}
+
+export interface IPasswordUtils {
+   comparePassword(password: string, hash: string): Promise<boolean>;
+}

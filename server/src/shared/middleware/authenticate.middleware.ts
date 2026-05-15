@@ -6,17 +6,22 @@ import logger from "../config/logger.config";
 import { globalConfig } from "../config/global.config";
 
 export function authenticate(req: AuthorizedRequest, res: Response, next: NextFunction) {
-   let token = null;
-   if (!req.cookies || !req.cookies["authToken"]) throw new UnauthorizedError("Authentication token is missing");
-   token = req.cookies["authToken"];
-
    try {
+      if (!req.cookies || !req.cookies["authToken"]) {
+         return next(new UnauthorizedError("Authentication token is missing"));
+      }
+
+      const token = req.cookies["authToken"];
       const decoded = JwtUtils.decodeToken(token, globalConfig.jwt.secret);
-      if (!decoded || typeof decoded === "string") throw new UnauthorizedError("Invalid authentication token");
+
+      if (!decoded || typeof decoded === "string") {
+         return next(new UnauthorizedError("Invalid authentication token"));
+      }
+
       req.user = decoded;
       next();
    } catch (error) {
       logger.error("[Authenticate] Authentication error:", error);
-      throw new UnauthorizedError("Failed to authenticate token");
+      next(new UnauthorizedError("Failed to authenticate token"));
    }
 }
