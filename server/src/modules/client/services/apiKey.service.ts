@@ -10,6 +10,7 @@ import { CreateApiKeyResponseDto } from "../dtos/createApiKeyResponse.dto";
 import { ClientBaseRepo } from "../repos/clientBase.repo";
 import { ApiKeyWithId } from "../../../shared/infra/db/mongo/models/apiKeys.model";
 import { ClientWithId } from "../../../shared/infra/db/mongo/models/client.model";
+import { globalConfig } from "../../../shared/config/global.config";
 
 export class ApiKeyService {
    protected apiKeyRepo: ApiKeyBaseRepo<ApiKeyWithId>;
@@ -39,7 +40,8 @@ export class ApiKeyService {
    }
 
    private hashApiKey(key: string) {
-      return crypto.createHash("sha256").update(key).digest("hex");
+      // We need this HMAC secret , so that when we change this all the existing API KEY will be invalidated.
+      return crypto.createHmac("sha256", globalConfig.apiKey.hmacSecret).update(key).digest("hex");
    }
 
    /**
@@ -166,10 +168,7 @@ export class ApiKeyService {
 
          return { client: safeClient, apiKeyDoc };
       } catch (error) {
-         logger.error("Error retrieving client from API key", {
-            error,
-            apiKeyValue,
-         });
+         logger.error("Error retrieving client from API key", { error });
          throw error;
       }
    }

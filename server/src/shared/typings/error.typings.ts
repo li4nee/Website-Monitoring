@@ -18,6 +18,9 @@ export enum ErrorCode {
    CIRCUIT_BREAKER_OPEN = "CIRCUIT_BREAKER_OPEN",
    MAX_RETRIES_EXCEEDED = "MAX_RETRIES_EXCEEDED",
    MESSAGE_PUBLISH_FAILED = "MESSAGE_PUBLISH_FAILED",
+   CORS_ERROR = "CORS_ERROR",
+   ENVIRONMENT_VARIABLE_ERROR = "ENVIRONMENT_VARIABLE_ERROR",
+
 }
 
 export enum ErrorHttpStatusCode {
@@ -132,5 +135,17 @@ export class ResourceNotInitializedError extends CustomError {
 export class JsonWebTokenError extends CustomError {
    constructor(message = "Invalid JSON Web Token") {
       super(message, ErrorHttpStatusCode.JSON_WEB_TOKEN_ERROR, ErrorCode.JSON_WEB_TOKEN_ERROR);
+   }
+}
+
+export class EnvironmentVariableError extends CustomError {
+   constructor(message = "Environment variable error") {
+      super(message, ErrorHttpStatusCode.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_SERVER_ERROR);
+   }
+}
+
+export class CORSError extends CustomError {
+   constructor(message = "CORS error") {
+      super(message, ErrorHttpStatusCode.PERMISSION_NOT_GRANTED, ErrorCode.CORS_ERROR);
    }
 }

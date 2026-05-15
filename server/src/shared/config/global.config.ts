@@ -1,7 +1,18 @@
 import dotenv from "dotenv";
-import { mongo } from "mongoose";
 import { StringValue } from "ms";
+import { EnvironmentVariableError } from "../typings/error.typings";
 dotenv.config();
+
+const isProduction = process.env.NODE_ENV === "production";
+function requireSecret(envVar: string, fallback?: string): string {
+   const value = process.env[envVar];
+   if (!value) {
+      if (isProduction) throw new EnvironmentVariableError(`Missing required environment variable: ${envVar}`);
+      if (fallback === undefined) throw new EnvironmentVariableError(`Missing required environment variable: ${envVar}`);
+      return fallback;
+   }
+   return value;
+}
 
 /**
  * Global configuration object that holds all the necessary configuration values for the application.
@@ -13,15 +24,20 @@ export const globalConfig = {
 
    // JWT
    jwt: {
-      secret: process.env.JWT_SECRET || "1234567890@abcdefg",
+      secret: requireSecret("JWT_SECRET", "change-me-babby"),
       expiresIn: (process.env.JWT_EXPIRES_IN || "12h") as StringValue,
    },
 
    // rateLimit
    rateLimit: {
-      windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "60000", 10), // 1 minute
-      max: parseInt(process.env.RATE_LIMIT_MAX || "15", 10), // 100 requests per windowMs
-      protectedMax: parseInt(process.env.RATE_LIMIT_PROTECTED_MAX || "30", 10), // 50 requests per windowMs for protected routes
+      windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "60000", 10),
+      max: parseInt(process.env.RATE_LIMIT_MAX || "15", 10),
+      protectedMax: parseInt(process.env.RATE_LIMIT_PROTECTED_MAX || "30", 10),
+      // For auth endpoints, stricter rate limit
+      auth: {
+         windowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS || `${15 * 60 * 1000}`, 10),
+         max: parseInt(process.env.AUTH_RATE_LIMIT_MAX || "5", 10),
+      },
    },
 
    //mongodb
@@ -36,7 +52,7 @@ export const globalConfig = {
       host: process.env.POSTGRES_HOST || "postgres",
       port: parseInt(process.env.POSTGRES_PORT || "5432", 10),
       user: process.env.POSTGRES_USER || "postgres",
-      password: process.env.POSTGRES_PASSWORD || "1234567890",
+      password: requireSecret("POSTGRES_PASSWORD", "dev-only-insecure-postgres-password"),
       database: process.env.POSTGRES_DB || "server_monitoring",
       maxPoolSize: parseInt(process.env.POSTGRES_MAX_POOL_SIZE || "10", 10),
       idleTimeoutMillis: parseInt(process.env.POSTGRES_IDLE_TIMEOUT_MS || "30000", 10), // 30 seconds
@@ -92,5 +108,15 @@ export const globalConfig = {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax" as const,
       maxAge: parseInt(process.env.COOKIE_MAX_AGE || `${8 * 60 * 60 * 1000}`, 10),
+   },
+
+   cors: {
+      allowedOrigins: process.env.CORS_ALLOWED_ORIGINS
+         ? process.env.CORS_ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+         : ["http://localhost:3000"],
+   },
+
+   apiKey: {
+      hmacSecret: requireSecret("API_KEY_HMAC_SECRET", "dev-only-insecure-apikey-hmac-secret"),
    },
 };

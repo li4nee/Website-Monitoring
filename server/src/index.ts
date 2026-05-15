@@ -8,7 +8,7 @@ import mongoConnection from "./shared/infra/db/mongo/mongoConnection";
 import postgresConnection from "./shared/infra/db/postgres/postgresConnection";
 import amqpConnection from "./shared/infra/amqpConnection";
 import { ResponseFormatter } from "./shared/utils/responseFormatter.utils";
-import { ResourceNotFoundError } from "./shared/typings/error.typings";
+import { CORSError, ResourceNotFoundError } from "./shared/typings/error.typings";
 import { GlobalErrorHandler } from "./shared/middleware/globalErrorHandler.middleware";
 import CookieParser from "cookie-parser";
 import AuthRouter from "./modules/auth/routes/auth.route";
@@ -20,25 +20,52 @@ const app = express();
 /**
  * Initialize middlewares
  */
-app.use(helmet());
+app.use(
+   helmet({
+      // Only for production.
+      // forces browsers to always use HTTPS. Servers can still send http.
+      // hsts: {
+      //    maxAge: 31536000,
+      //    includeSubDomains: true,
+      //    preload: true, // preload true bhaye 1st request mai https ma hancha.
+      // },
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      referrerPolicy: { policy: "no-referrer" },
+   }),
+);
+// No x-powered-by express
+app.disable("x-powered-by");
+
 app.use(
    cors({
-      origin: true,
+      origin: (origin, callback) => {
+         // allow non-browser / server-to-server requests with no origin
+         if (!origin) return callback(null, true);
+         if (globalConfig.cors.allowedOrigins.includes(origin)) return callback(null, true);
+         callback(new CORSError(`CORS: origin '${origin}' not allowed`));
+      },
       credentials: true,
    }),
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// limit the body's size
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 app.use(CookieParser());
 // Request logging
 app.use((req: Request, res: Response, next: NextFunction) => {
    return CentralizedRequestLogger(req, res, next);
 });
 
+// For ip behind nginx.
+app.set("trust proxy", 1);
+
 /**
  * Health check
  */
 app.get("/health", async (req: Request, res: Response) => {
+   const isProduction = globalConfig.node_env === "production";
    try {
       const [mongoStatus, postgresStatus, amqpStatus] = await Promise.all([
          mongoConnection.getConnectionStatus(),
@@ -46,15 +73,19 @@ app.get("/health", async (req: Request, res: Response) => {
          amqpConnection.getConnectionStatus(),
       ]);
 
-      return res.status(200).json(
-         ResponseFormatter.success("Server is healthy", 200, {
-            connectionStatus: { mongo: mongoStatus, postgres: postgresStatus, amqp: amqpStatus },
-            status: "HEALTHY",
+      const allHealthy = mongoStatus && postgresStatus && amqpStatus;
+      const statusCode = allHealthy ? 200 : 503;
+
+      // Hide the connection details in prod.
+      return res.status(statusCode).json(
+         ResponseFormatter.success(allHealthy ? "Server is healthy" : "Server is degraded", statusCode, {
+            status: allHealthy ? "HEALTHY" : "DEGRADED",
             uptime: process.uptime(),
+            ...(isProduction ? {} : { connectionStatus: { mongo: mongoStatus, postgres: postgresStatus, amqp: amqpStatus } }),
          }),
       );
    } catch (err) {
-      return res.status(500).json(ResponseFormatter.error("Health check failed", 500, err));
+      return res.status(503).json(ResponseFormatter.error("Health check failed", 503, isProduction ? null : err));
    }
 });
 

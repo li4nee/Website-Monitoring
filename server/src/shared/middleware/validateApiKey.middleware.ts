@@ -60,6 +60,7 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
             ip: req.ip,
             clientSlug: client.slug,
          });
+         throw new PermissionNotGranted("API key does not have write access");
       }
 
       req.client = {

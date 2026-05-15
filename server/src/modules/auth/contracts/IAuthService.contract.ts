@@ -1,4 +1,4 @@
-import { User, UserWithId } from "../../../shared/models/user.model";
+import { User, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
 import { RegistrationDTOType } from "../dtos/onboarding.dto";
 import { UserResponseDto } from "../dtos/userResponse.dto";
 

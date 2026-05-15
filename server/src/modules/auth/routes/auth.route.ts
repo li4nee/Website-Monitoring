@@ -9,13 +9,17 @@ import { authenticate } from "../../../shared/middleware/authenticate.middleware
 import { authorize } from "../../../shared/middleware/authorize.middleware";
 import { USER_ROLE } from "../../../shared/typings/auth.typings";
 import { LoginDTO } from "../dtos/sessionManagement.dto";
+import { authRateLimiter } from "../../../shared/infra/resilience/rateLimit.infra";
 
 const router = Router();
 const { controllers } = AuthDependenciesContainer;
 const { authController } = controllers;
 
-router.post("/onboard-super-admin", validateBody(SuperAdminOnboardingDto), (req: Request, res: Response, next: NextFunction) =>
-   authController.onboardSuperAdmin(req, res, next),
+router.post(
+   "/onboard-super-admin",
+   authRateLimiter,
+   validateBody(SuperAdminOnboardingDto),
+   (req: Request, res: Response, next: NextFunction) => authController.onboardSuperAdmin(req, res, next),
 );
 
 router.post(
@@ -26,7 +30,7 @@ router.post(
    (req: Request, res: Response, next: NextFunction) => authController.register(req, res, next),
 );
 
-router.post("/login", validateBody(LoginDTO), (req: Request, res: Response, next: NextFunction) =>
+router.post("/login", authRateLimiter, validateBody(LoginDTO), (req: Request, res: Response, next: NextFunction) =>
    authController.login(req, res, next),
 );
 

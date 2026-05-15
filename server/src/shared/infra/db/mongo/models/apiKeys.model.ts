@@ -110,7 +110,7 @@ const ApiKeySchema = new mongoose.Schema(
       },
       lastRotatedAt: {
          type: Date,
-         Default: Date.now,
+         default: Date.now,
       },
       rotationWarningPeriod: {
          type: Number,
