@@ -1,5 +1,4 @@
 import mongoose, { HydratedDocument, InferSchemaType } from "mongoose";
-import { time } from "node:console";
 
 /**
  * Client Schema
