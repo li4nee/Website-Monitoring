@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import logger from "../../../shared/config/logger.config";
-import { InvalidInputError, PermissionNotGranted, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
+import { InvalidInputError, PermissionNotGranted, ResourceNotFoundError, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { ApiKeyBaseRepo } from "../repos/apiKeyBase.repo";
 import { AuthorizationUtils } from "../../../shared/utils/authorization.utils";
 import { CreateApiKeyDtoType } from "../dtos/createApiKey.dto";
@@ -61,7 +61,7 @@ export class ApiKeyService {
             throw new PermissionNotGranted("Permission denied to create API keys for this client.");
 
          const client = await this.clientRepo.findById(clientId, true);
-         if (!client) throw new InvalidInputError("Client not found");
+         if (!client) throw new ResourceNotFoundError("Client not found");
 
          const apiKey = this.generateApiKey();
 
@@ -100,7 +100,7 @@ export class ApiKeyService {
             throw new PermissionNotGranted("Permission denied to view API keys for this client.");
 
          const client = await this.clientRepo.findById(clientId, true);
-         if (!client) throw new InvalidInputError("Client not found");
+         if (!client) throw new ResourceNotFoundError("Client not found");
 
          const apiKeys = await this.apiKeyRepo.findByClientId(clientId, true, false);
 
@@ -123,10 +123,10 @@ export class ApiKeyService {
             throw new PermissionNotGranted("Permission denied to view API keys for this client.");
 
          const client = await this.clientRepo.findById(clientId, true);
-         if (!client) throw new InvalidInputError("Client not found");
+         if (!client) throw new ResourceNotFoundError("Client not found");
 
          const apiKey = await this.apiKeyRepo.findByKeyId(apiKeyId, true, false);
-         if (!apiKey) throw new InvalidInputError("API key not found");
+         if (!apiKey) throw new ResourceNotFoundError("API key not found");
 
          const { keyValue, ...safeapikey } = apiKey;
          return safeapikey;
@@ -142,10 +142,10 @@ export class ApiKeyService {
             throw new PermissionNotGranted("Permission denied to revoke API keys for this client.");
 
          const client = await this.clientRepo.findById(clientId, true);
-         if (!client) throw new InvalidInputError("Client not found.");
+         if (!client) throw new ResourceNotFoundError("Client not found.");
 
          const apiKey = await this.apiKeyRepo.findById(apiKeyId, true, false);
-         if (!apiKey) throw new InvalidInputError("API key not found.");
+         if (!apiKey) throw new ResourceNotFoundError("API key not found.");
 
          if (apiKey.clientId.toString() !== clientId)
             throw new PermissionNotGranted("This API key does not belong to this client.");
@@ -172,13 +172,13 @@ export class ApiKeyService {
          }
 
          if (!apiKeyDoc.clientId) {
-            throw new InvalidInputError("API key not linked to client");
+            throw new ResourceNotFoundError("API key not linked to any client");
          }
 
          const client = await this.clientRepo.findById(apiKeyDoc.clientId.toString(), false);
 
          if (!client) {
-            throw new InvalidInputError("Client not found");
+            throw new ResourceNotFoundError("Client not found");
          }
 
          const safeClient: { _id: Types.ObjectId; name: string; slug: string; isActive: boolean } = {

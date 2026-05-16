@@ -2,7 +2,7 @@ import { globalConfig } from "../../../shared/config/global.config";
 import logger from "../../../shared/config/logger.config";
 import { ApiHitsWithId } from "../../../shared/infra/db/mongo/models/apiHits.model";
 import { EndpointMetrics } from "../../../shared/infra/db/postgres/postgresTypes";
-import { InvalidInputError, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
+import { InvalidInputError, InternalServerError, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { EventDataType } from "../../../shared/typings/messaging.typings";
 import { EventDataDto } from "../dto/eventData.dto";
 import { ApiHitsBaseRepo } from "../repos/apiHitsBase.repo";
@@ -98,7 +98,9 @@ export class ProcessorService {
          logger.error(
             `[ProcessorService] Failed to upsert metrics after ${this.postgresUpsertRetryAttempts} attempts for event ${eventData.eventId}. Error: ${lastError instanceof Error ? lastError.stack : lastError}`,
          );
-         throw lastError;
+         throw new InternalServerError(
+            `Failed to upsert metrics after ${this.postgresUpsertRetryAttempts} attempts for event ${eventData.eventId}`,
+         );
       }
    }
 

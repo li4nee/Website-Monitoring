@@ -65,7 +65,7 @@ export class AuthService {
                   : "User with this email already exists."
                : "User with this username already exists.";
 
-         throw new PermissionNotGranted(message);
+         throw new InvalidInputError(message);
       }
    }
 
@@ -166,7 +166,7 @@ export class AuthService {
       const user = await this.userRepo.findById(userId);
       if (!user) {
          logger.warn(`User not found for profile: ${userId}`);
-         throw new PermissionNotGranted("User not found.");
+         throw new ResourceNotFoundError("User not found.");
       }
       return this.formatUserResponseWithoutPassword(user);
    }

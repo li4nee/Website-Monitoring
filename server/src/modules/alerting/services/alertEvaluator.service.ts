@@ -3,6 +3,7 @@ import { AlertingDocument } from "../../../shared/infra/db/mongo/models/alerting
 import { OverviewStats } from "../../analytics/dtos/analyticsResponse.dto";
 import { EndPointMetricsBaseRepo } from "../../processor/repos/endpointMetricsBase.repo";
 import { EndpointMetrics } from "../../../shared/infra/db/postgres/postgresTypes";
+import { AlertEvaluationError } from "../../../shared/typings/error.typings";
 
 export interface AlertConditions {
    error_rate_threshold?: number;   // percentage, e.g. 5 means 5%
@@ -48,7 +49,8 @@ export class AlertEvaluatorService {
       try {
          stats = await this.endpointMetricsRepo.getOverviewStats(clientId, startTime);
       } catch (error) {
-         logger.error(`[AlertEvaluatorService] Failed to fetch stats for summary alert ${alert._id}`, { error });
+         const evalError = new AlertEvaluationError(alert._id.toString(), `Failed to fetch stats for summary alert ${alert._id}`);
+         logger.error(`[AlertEvaluatorService] ${evalError.message}`, { alertId: evalError.alertId, cause: error });
          return { fired: false, reasons: [], stats: EMPTY_STATS };
       }
 
@@ -59,7 +61,6 @@ export class AlertEvaluatorService {
          `${stats.unique_endpoints} unique endpoints`,
       ];
 
-      // Summary alerts always fire (they are reports, not threshold breaches)
       return { fired: true, reasons, stats };
    }
 
@@ -73,7 +74,8 @@ export class AlertEvaluatorService {
       try {
          stats = await this.endpointMetricsRepo.getOverviewStats(clientId, startTime);
       } catch (error) {
-         logger.error(`[AlertEvaluatorService] Failed to fetch stats for alert ${alert._id}`, { error });
+         const evalError = new AlertEvaluationError(alert._id.toString(), `Failed to fetch stats for threshold alert ${alert._id}`);
+         logger.error(`[AlertEvaluatorService] ${evalError.message}`, { alertId: evalError.alertId, cause: error });
          return { fired: false, reasons: [], stats: EMPTY_STATS };
       }
 

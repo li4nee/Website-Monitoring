@@ -20,7 +20,7 @@ export enum ErrorCode {
    MESSAGE_PUBLISH_FAILED = "MESSAGE_PUBLISH_FAILED",
    CORS_ERROR = "CORS_ERROR",
    ENVIRONMENT_VARIABLE_ERROR = "ENVIRONMENT_VARIABLE_ERROR",
-
+   ALERT_EVALUATION_FAILED = "ALERT_EVALUATION_FAILED",
 }
 
 export enum ErrorHttpStatusCode {
@@ -147,5 +147,14 @@ export class EnvironmentVariableError extends CustomError {
 export class CORSError extends CustomError {
    constructor(message = "CORS error") {
       super(message, ErrorHttpStatusCode.PERMISSION_NOT_GRANTED, ErrorCode.CORS_ERROR);
+   }
+}
+
+export class AlertEvaluationError extends CustomError {
+   public readonly alertId: string;
+
+   constructor(alertId: string, message = "Alert evaluation failed") {
+      super(message, ErrorHttpStatusCode.INTERNAL_SERVER_ERROR, ErrorCode.ALERT_EVALUATION_FAILED);
+      this.alertId = alertId;
    }
 }
