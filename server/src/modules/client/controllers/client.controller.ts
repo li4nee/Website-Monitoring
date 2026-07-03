@@ -207,4 +207,21 @@ export class ClientController {
          next(error);
       }
    }
+
+   /**
+    * PATCH /api/v1/admin/clients/:clientId/activate
+    * PATCH /api/v1/admin/clients/:clientId/deactivate
+    */
+   async setClientActive(req: AuthorizedRequest, res: Response, next: NextFunction) {
+      try {
+         const { clientId } = req.params;
+         this.checkIfClientIdIsThereAndValid(clientId);
+         const isActive = req.path.endsWith("/activate");
+         const client = await this.clientService.setClientActive(clientId as string, isActive, req.user!);
+         const msg = isActive ? "Client activated successfully." : "Client deactivated successfully.";
+         return res.status(200).json(ResponseFormatter.success(msg, 200, { client }));
+      } catch (error) {
+         next(error);
+      }
+   }
 }

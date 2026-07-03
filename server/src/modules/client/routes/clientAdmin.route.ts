@@ -134,6 +134,32 @@ router.patch(
 );
 
 /**
+ * @route PATCH /api/v1/admin/clients/:clientId/activate
+ * @desc Activate a client (re-enables API key validation for its ingest traffic)
+ * @access Private (Super Admin only)
+ */
+router.patch(
+   "/:clientId/activate",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN]),
+   validateParams(clientIdParamSchema),
+   (req: Request, res: Response, next: NextFunction) => clientController.setClientActive(req, res, next),
+);
+
+/**
+ * @route PATCH /api/v1/admin/clients/:clientId/deactivate
+ * @desc Suspend a client (all its API keys are rejected by validateApiKey until reactivated)
+ * @access Private (Super Admin only)
+ */
+router.patch(
+   "/:clientId/deactivate",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN]),
+   validateParams(clientIdParamSchema),
+   (req: Request, res: Response, next: NextFunction) => clientController.setClientActive(req, res, next),
+);
+
+/**
  * @route GET /api/v1/admin/clients/:clientId/users
  * @desc List all users for a client
  * @access Private (Super Admin and Client Admin with canManageUsers)

@@ -19,4 +19,5 @@ export interface IClientService {
    listUsersForClient(clientId: string, requestedBy: UserInsideAuthorizedRequest, limit: number, cursor?: string): Promise<{ data: Omit<UserWithId, "password">[]; nextCursor?: string }>;
    updateUserPermissions(clientId: string, userId: string, permissions: UpdateUserPermissionsDTOType, requestedBy: UserInsideAuthorizedRequest): Promise<Omit<User, "password" | "trash" | "isActive">>;
    setUserActive(clientId: string, userId: string, isActive: boolean, requestedBy: UserInsideAuthorizedRequest): Promise<Omit<User, "password" | "trash" | "isActive">>;
+   setClientActive(clientId: string, isActive: boolean, requestedBy: UserInsideAuthorizedRequest): Promise<Client>;
 }

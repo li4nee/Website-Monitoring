@@ -130,4 +130,13 @@ export const globalConfig = {
    apiKey: {
       hmacSecret: requireSecret("API_KEY_HMAC_SECRET", "dev-only-insecure-apikey-hmac-secret"),
    },
+
+   email: {
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: parseInt(process.env.SMTP_PORT || "587", 10),
+      secure: process.env.SMTP_SECURE === "true",
+      user: process.env.SMTP_USER || "",
+      pass: process.env.SMTP_PASS || "",
+      defaultFrom: process.env.SMTP_DEFAULT_FROM || "alerts@servermonitoring.local",
+   },
 };

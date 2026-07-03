@@ -31,3 +31,7 @@ export const AlertClientParamSchema = z.object({
    clientId: z.string().min(1, "clientId is required"),
    id: z.string().min(1, "Alert ID is required"),
 });
+
+export const IncidentsClientParamSchema = z.object({
+   clientId: z.string().min(1, "clientId is required"),
+});

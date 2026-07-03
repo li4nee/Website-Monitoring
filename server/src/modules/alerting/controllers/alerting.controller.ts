@@ -99,6 +99,20 @@ export class AlertingController {
    }
 
    /**
+    * GET /api/v1/alerting/:clientId/incidents?limit=&cursor=
+    */
+   async getIncidents(req: AuthorizedRequest, res: Response, next: NextFunction) {
+      try {
+         const { clientId } = req.params as { clientId: string };
+         const query = req.query as unknown as AlertHistoryQueryDTOType;
+         const result = await this.alertingService.getIncidents(req.user!, clientId, query);
+         return res.status(200).json(ResponseFormatter.success("Incidents retrieved successfully.", 200, result));
+      } catch (error) {
+         next(error);
+      }
+   }
+
+   /**
     * PATCH /api/v1/alerting/:clientId/:id/enable
     * PATCH /api/v1/alerting/:clientId/:id/disable
     */

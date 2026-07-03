@@ -10,6 +10,7 @@ import { IAlertingService } from "../contracts/IAlertingService.contract";
 import { CreateAlertDTOType } from "../dtos/createAlert.dto";
 import { UpdateAlertDTOType } from "../dtos/updateAlert.dto";
 import { AlertHistoryQueryDTOType, ListAlertsQueryDTOType } from "../dtos/listAlerts.dto";
+import { IncidentFeedItem } from "../dtos/incidentFeed.dto";
 
 export class AlertingService implements IAlertingService {
    private alertingRepo: AlertingBaseRepo<AlertingDocument>;
@@ -176,6 +177,22 @@ export class AlertingService implements IAlertingService {
          return result;
       } catch (error) {
          logger.error("[AlertingService] Error getting alert history", { error, clientId, alertId });
+         throw error;
+      }
+   }
+
+   async getIncidents(
+      user: UserInsideAuthorizedRequest,
+      clientId: string,
+      query: AlertHistoryQueryDTOType,
+   ): Promise<{ data: IncidentFeedItem[]; nextCursor?: string }> {
+      try {
+         this.checkViewPermission(user, clientId);
+         const result = await this.fireLogRepo.findByClientId(clientId, query.limit, query.cursor);
+         logger.info(`[AlertingService] Incidents retrieved for clientId: ${clientId}`);
+         return result;
+      } catch (error) {
+         logger.error("[AlertingService] Error getting incidents", { error, clientId });
          throw error;
       }
    }

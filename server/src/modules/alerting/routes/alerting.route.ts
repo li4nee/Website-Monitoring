@@ -6,7 +6,13 @@ import { USER_ROLE } from "../../../shared/typings/auth.typings";
 import AlertingDependencyContainer from "../dependencies/alerting.dependency";
 import { CreateAlertDTO } from "../dtos/createAlert.dto";
 import { UpdateAlertDTO } from "../dtos/updateAlert.dto";
-import { AlertClientParamSchema, AlertHistoryQueryDTO, AlertIdParamSchema, ListAlertsQueryDTO } from "../dtos/listAlerts.dto";
+import {
+   AlertClientParamSchema,
+   AlertHistoryQueryDTO,
+   AlertIdParamSchema,
+   IncidentsClientParamSchema,
+   ListAlertsQueryDTO,
+} from "../dtos/listAlerts.dto";
 
 const router = Router();
 const { alertingController } = AlertingDependencyContainer.init().controllers;
@@ -35,6 +41,23 @@ router.get(
    authorize([USER_ROLE.SUPER_ADMIN, USER_ROLE.CLIENT_ADMIN, USER_ROLE.CLIENT_USER]),
    validateQuery(ListAlertsQueryDTO),
    (req: Request, res: Response, next: NextFunction) => alertingController.listAlerts(req, res, next),
+);
+
+/**
+ * @route GET /api/v1/alerting/:clientId/incidents
+ * @desc Get the cross-rule fired-alert feed for a client (paginated, newest first)
+ * @access Private (Super Admin, Client Admin, Client User with canViewAnalytics)
+ *
+ * NOTE: must be registered before GET /:clientId/:id — both are 2-segment paths and
+ * Express would otherwise route /:clientId/incidents into the :id handler.
+ */
+router.get(
+   "/:clientId/incidents",
+   authenticate,
+   authorize([USER_ROLE.SUPER_ADMIN, USER_ROLE.CLIENT_ADMIN, USER_ROLE.CLIENT_USER]),
+   validateParams(IncidentsClientParamSchema),
+   validateQuery(AlertHistoryQueryDTO),
+   (req: Request, res: Response, next: NextFunction) => alertingController.getIncidents(req, res, next),
 );
 
 /**

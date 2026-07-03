@@ -2,3 +2,5 @@ node_modules
 logs
 package-lock.json
 .env
+!/docs
+!/docs/**

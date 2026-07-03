@@ -272,4 +272,17 @@ export class ClientService {
          throw error;
       }
    }
+
+   async setClientActive(clientId: string, isActive: boolean, requestedBy: UserInsideAuthorizedRequest): Promise<Client> {
+      try {
+         this.requireSuperAdmin(requestedBy);
+         const updated = await this.clientRepo.update(clientId, { isActive } as any);
+         if (!updated) throw new ResourceNotFoundError("Client not found.");
+         logger.info(`Client ${isActive ? "activated" : "deactivated"}: ${clientId} by user: ${requestedBy.id}`);
+         return updated;
+      } catch (error) {
+         logger.error("Error setting client active status", { error, clientId, isActive });
+         throw error;
+      }
+   }
 }
