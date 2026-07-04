@@ -11,6 +11,7 @@ import { AuthorizationUtils } from "../../../shared/utils/authorization.utils";
 import { CreateClientUserDTOType } from "../dtos/createClientUser.dto";
 import { Client } from "../../../shared/infra/db/mongo/models/client.model";
 import { User, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
+import { AuditLogger } from "../../../shared/utils/auditLogger.utils";
 export class ClientService {
    protected clientRepo: ClientBaseRepo<Client>;
    // protected apiKeyRepo: ApiKeyBaseRepo<ApiKeyWithId>;
@@ -87,6 +88,18 @@ export class ClientService {
             createdBy: new Types.ObjectId(createdBy),
          });
          logger.info(`Client created successfully with slug : ${newClient.slug} by user: ${createdBy}`);
+         // createClient is only ever reachable via a super_admin-only route (see clientAdmin.route.ts).
+         // `Client` (the repo's declared generic here) doesn't expose `_id` even
+         // though the underlying document has one — slug is a stable, unique,
+         // type-safe identifier to correlate this entry with instead.
+         AuditLogger.log({
+            action: "client.created",
+            actorId: createdBy,
+            actorRole: USER_ROLE.SUPER_ADMIN,
+            targetType: "client",
+            targetId: newClient.slug,
+            metadata: { name: newClient.name, slug: newClient.slug },
+         });
          return newClient;
       } catch (error) {
          logger.error("Error creating client", { error, clientData, createdBy });
@@ -140,6 +153,15 @@ export class ClientService {
          logger.info(
             `Client user created successfully with username : ${newUser.username} for clientId: ${clientId} by user: ${createdBy.id}`,
          );
+         AuditLogger.log({
+            action: "user.created",
+            actorId: createdBy.id,
+            actorRole: createdBy.role,
+            clientId,
+            targetType: "user",
+            targetId: newUser._id?.toString(),
+            metadata: { username: newUser.username, role: newUser.role },
+         });
          return this.formatUserResponseWithoutPassword(newUser);
       } catch (error) {
          logger.error("Error creating client user", { error, clientId, userData, createdBy });
@@ -191,6 +213,15 @@ export class ClientService {
          const updated = await this.clientRepo.update(clientId, data as any);
          if (!updated) throw new ResourceNotFoundError("Client not found.");
          logger.info(`Client updated: ${clientId} by user: ${requestedBy.id}`);
+         AuditLogger.log({
+            action: "client.updated",
+            actorId: requestedBy.id,
+            actorRole: requestedBy.role,
+            clientId,
+            targetType: "client",
+            targetId: clientId,
+            metadata: { fields: Object.keys(data) },
+         });
          return updated;
       } catch (error) {
          logger.error("Error updating client", { error, clientId });
@@ -243,6 +274,15 @@ export class ClientService {
          const updated = await this.userRepo.update(userId, { permissions: merged });
          if (!updated) throw new ResourceNotFoundError("User not found.");
          logger.info(`User permissions updated: ${userId} for clientId: ${clientId} by user: ${requestedBy.id}`);
+         AuditLogger.log({
+            action: "user.permissions_updated",
+            actorId: requestedBy.id,
+            actorRole: requestedBy.role,
+            clientId,
+            targetType: "user",
+            targetId: userId,
+            metadata: { permissions: merged },
+         });
          return this.formatUserResponseWithoutPassword(updated);
       } catch (error) {
          logger.error("Error updating user permissions", { error, clientId, userId });
@@ -266,6 +306,14 @@ export class ClientService {
          const updated = await this.userRepo.update(userId, { isActive });
          if (!updated) throw new ResourceNotFoundError("User not found.");
          logger.info(`User ${isActive ? "activated" : "deactivated"}: ${userId} for clientId: ${clientId} by user: ${requestedBy.id}`);
+         AuditLogger.log({
+            action: isActive ? "user.activated" : "user.deactivated",
+            actorId: requestedBy.id,
+            actorRole: requestedBy.role,
+            clientId,
+            targetType: "user",
+            targetId: userId,
+         });
          return this.formatUserResponseWithoutPassword(updated);
       } catch (error) {
          logger.error("Error setting user active status", { error, clientId, userId, isActive });
@@ -279,6 +327,14 @@ export class ClientService {
          const updated = await this.clientRepo.update(clientId, { isActive } as any);
          if (!updated) throw new ResourceNotFoundError("Client not found.");
          logger.info(`Client ${isActive ? "activated" : "deactivated"}: ${clientId} by user: ${requestedBy.id}`);
+         AuditLogger.log({
+            action: isActive ? "client.activated" : "client.deactivated",
+            actorId: requestedBy.id,
+            actorRole: requestedBy.role,
+            clientId,
+            targetType: "client",
+            targetId: clientId,
+         });
          return updated;
       } catch (error) {
          logger.error("Error setting client active status", { error, clientId, isActive });

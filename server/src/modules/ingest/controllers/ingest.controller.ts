@@ -31,7 +31,7 @@ export class IngestController {
             apiKeyId,
          });
 
-         let result = await this.ingestService.ingestApiHit(req.body, clientId, apiKeyId);
+         const result = await this.ingestService.ingestApiHit(req.body, clientId, apiKeyId);
          res.status(202).json(ResponseFormatter.success("API hit ingested successfully", 202, result));
       } catch (error) {
          next(error);

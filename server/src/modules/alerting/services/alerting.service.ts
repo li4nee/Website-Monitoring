@@ -11,6 +11,7 @@ import { CreateAlertDTOType } from "../dtos/createAlert.dto";
 import { UpdateAlertDTOType } from "../dtos/updateAlert.dto";
 import { AlertHistoryQueryDTOType, ListAlertsQueryDTOType } from "../dtos/listAlerts.dto";
 import { IncidentFeedItem } from "../dtos/incidentFeed.dto";
+import { AuditLogger } from "../../../shared/utils/auditLogger.utils";
 
 export class AlertingService implements IAlertingService {
    private alertingRepo: AlertingBaseRepo<AlertingDocument>;
@@ -59,6 +60,15 @@ export class AlertingService implements IAlertingService {
             isEnabled: true,
          });
          logger.info(`[AlertingService] Alert created: ${alert._id} for clientId: ${clientId} by user: ${user.id}`);
+         AuditLogger.log({
+            action: "alert.created",
+            actorId: user.id,
+            actorRole: user.role,
+            clientId,
+            targetType: "alert",
+            targetId: alert._id?.toString(),
+            metadata: { name: alert.name, alertType: alert.alertType },
+         });
          return alert;
       } catch (error) {
          logger.error("[AlertingService] Error creating alert", { error, clientId });
@@ -112,6 +122,15 @@ export class AlertingService implements IAlertingService {
          const updated = await this.alertingRepo.update(alertId, data);
          if (!updated) throw new ResourceNotFoundError("Alert not found.");
          logger.info(`[AlertingService] Alert updated: ${alertId} by user: ${user.id}`);
+         AuditLogger.log({
+            action: "alert.updated",
+            actorId: user.id,
+            actorRole: user.role,
+            clientId,
+            targetType: "alert",
+            targetId: alertId,
+            metadata: { fields: Object.keys(data) },
+         });
          return updated;
       } catch (error) {
          logger.error("[AlertingService] Error updating alert", { error, clientId, alertId });
@@ -130,6 +149,15 @@ export class AlertingService implements IAlertingService {
          await this.alertingRepo.delete(alertId);
          await this.fireLogRepo.deleteByAlertId(alertId);
          logger.info(`[AlertingService] Alert deleted: ${alertId} by user: ${user.id}`);
+         AuditLogger.log({
+            action: "alert.deleted",
+            actorId: user.id,
+            actorRole: user.role,
+            clientId,
+            targetType: "alert",
+            targetId: alertId,
+            metadata: { name: existing.name },
+         });
       } catch (error) {
          logger.error("[AlertingService] Error deleting alert", { error, clientId, alertId });
          throw error;
@@ -152,6 +180,14 @@ export class AlertingService implements IAlertingService {
          const updated = await this.alertingRepo.setEnabled(alertId, isEnabled);
          if (!updated) throw new ResourceNotFoundError("Alert not found.");
          logger.info(`[AlertingService] Alert ${alertId} ${isEnabled ? "enabled" : "disabled"} by user: ${user.id}`);
+         AuditLogger.log({
+            action: isEnabled ? "alert.enabled" : "alert.disabled",
+            actorId: user.id,
+            actorRole: user.role,
+            clientId,
+            targetType: "alert",
+            targetId: alertId,
+         });
          return updated;
       } catch (error) {
          logger.error("[AlertingService] Error setting alert enabled status", { error, clientId, alertId, isEnabled });

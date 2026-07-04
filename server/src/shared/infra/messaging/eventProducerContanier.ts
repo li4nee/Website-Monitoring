@@ -29,14 +29,14 @@ export const amqpAdapter: AmqpConnection = {
 
 export class EventProducerContainer {
    static init(amqp: AmqpConnection): EventProducer {
-      let circuitBreakerOptions: CircuitBreakerOptions = {
+      const circuitBreakerOptions: CircuitBreakerOptions = {
          failureThreshold: globalConfig.infra.circuitBreakerFailureThreshold || 5,
          cooldownTimeInMs: globalConfig.infra.circuitBreakerCooldownTimeInMs, // 30 seconds
          halfOpenStateMaxAttempts: globalConfig.infra.circuitBreakerHalfOpenStateMaxAttempts || 2,
       };
       const circuitBreaker = new CircuitBreaker(circuitBreakerOptions);
 
-      let retryStrategyOptions: RetryStrategyOptions = {
+      const retryStrategyOptions: RetryStrategyOptions = {
          maxRetries: globalConfig.infra.retryAttempts || 5,
          baseRetryDelayInMs: globalConfig.infra.retryDelay || 1000, // 1 second
          maxRetryDelayInMs: globalConfig.infra.maxRetryDelay || 30000, // 30 seconds

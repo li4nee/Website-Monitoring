@@ -9,11 +9,14 @@ import { ApiHitsBaseRepo } from "./apiHitsBase.repo";
 export class MongoApiHitsRepo extends ApiHitsBaseRepo<ApiHitsWithId> {
    private model = ApiHitModel;
 
-   async createApiHit(apiHitData: EventDataType): Promise<ApiHitsWithId> {
+   async createApiHit(apiHitData: EventDataType, retentionDays: number): Promise<ApiHitsWithId> {
       try {
+         const timestamp = new Date(apiHitData.timeStamp);
+         const expiresAt = new Date(timestamp.getTime() + retentionDays * 24 * 60 * 60 * 1000);
          const doc = new this.model({
             eventId: apiHitData.eventId,
-            timestamp: new Date(apiHitData.timeStamp),
+            timestamp,
+            expiresAt,
             serviceName: apiHitData.serviceName,
             endPoint: apiHitData.endpoint,
             method: apiHitData.method,

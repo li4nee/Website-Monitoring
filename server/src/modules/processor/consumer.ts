@@ -3,8 +3,10 @@ import logger from "../../shared/config/logger.config";
 import { IConfirmChannelManager } from "../../shared/contracts/infra/messaging/IConfirmManager.contract";
 import { ICircuitBreaker } from "../../shared/contracts/infra/resilience/ICircuitBreaker.contract";
 import { IRetryStrategy } from "../../shared/contracts/infra/resilience/IRetryStrategy.contract";
+import { IIdempotencyStore } from "../../shared/contracts/infra/IIdempotencyStore.contract";
 import { MongoConnection } from "../../shared/infra/db/mongo/mongoConnection";
 import { PostgresConnection } from "../../shared/infra/db/postgres/postgresConnection";
+import { RedisConnection } from "../../shared/infra/redisConnection";
 import { InvalidInputError, ResourceNotInitializedError } from "../../shared/typings/error.typings";
 import { eventConsumerStats } from "../../shared/typings/eventConsumer.typings";
 import { IProcessorService } from "./contracts/IProcessorService.contracts";
@@ -16,7 +18,6 @@ import { MessagePublishError } from "../../shared/typings/eventError.typings";
 
 /**
  * TODO: RN when stopping we can lost some message which are being processed , fix it.
- * Add redis and move the sets and maps in redis so multiple ibstance can share it.
  */
 
 export class EventConsumer {
@@ -26,6 +27,8 @@ export class EventConsumer {
    private circuitBreaker: ICircuitBreaker;
    private mongoDBConnection: MongoConnection;
    private postgresConnection: PostgresConnection;
+   private redisConnection: RedisConnection;
+   private idempotencyStore: IIdempotencyStore;
 
    private mongoPostgresMaxConnectionRetryAttempts = globalConfig.consumer.mongoPostgresConnectionMaxRetryAttemptsInConsumer;
 
@@ -42,10 +45,6 @@ export class EventConsumer {
       lastProcessedEvent: null,
    };
 
-   // TODO: Implement this in redis . So that multiple instance of consumer can share the cache.
-   private processedEventIds: Set<string> = new Set();
-   private maxProcessedEventIdsCacheSize = globalConfig.consumer.maxProcessedEventIdsCacheSize;
-
    // We need this to track what if the specific event type what is causing the failure.
    private failedEventTypesAndCount: Map<string, number> = new Map();
 
@@ -56,6 +55,8 @@ export class EventConsumer {
       circuitBreaker,
       mongoDBConnection,
       postgresConnection,
+      redisConnection,
+      idempotencyStore,
    }: {
       processorService: IProcessorService;
       amqpConnection: IConfirmChannelManager;
@@ -63,6 +64,8 @@ export class EventConsumer {
       circuitBreaker: ICircuitBreaker;
       mongoDBConnection: MongoConnection;
       postgresConnection: PostgresConnection;
+      redisConnection: RedisConnection;
+      idempotencyStore: IIdempotencyStore;
    }) {
       this.processorService = processorService;
       this.amqpConnection = amqpConnection;
@@ -70,20 +73,8 @@ export class EventConsumer {
       this.circuitBreaker = circuitBreaker;
       this.mongoDBConnection = mongoDBConnection;
       this.postgresConnection = postgresConnection;
-   }
-   /**
-    * TODO: implement this in redis with timeout.
-    */
-   private fifoProcessedEventIdsCleanup() {
-      if (this.processedEventIds.size > this.maxProcessedEventIdsCacheSize) {
-         const iterator = this.processedEventIds.values();
-
-         for (let i = 0; i < this.maxProcessedEventIdsCacheSize / 2; i++) {
-            const { value, done } = iterator.next();
-            if (done) break;
-            this.processedEventIds.delete(value);
-         }
-      }
+      this.redisConnection = redisConnection;
+      this.idempotencyStore = idempotencyStore;
    }
 
    private async connectToDatabase(): Promise<void> {
@@ -91,7 +82,11 @@ export class EventConsumer {
 
       while (attempt < this.mongoPostgresMaxConnectionRetryAttempts) {
          try {
-            await Promise.all([this.mongoDBConnection.connect(), this.postgresConnection.testConnection()]);
+            await Promise.all([
+               this.mongoDBConnection.connect(),
+               this.postgresConnection.testConnection(),
+               this.redisConnection.connect(),
+            ]);
             logger.info("[Event Consumer] Connected to DBs", { attempt: attempt + 1 });
             return;
          } catch (error) {
@@ -228,7 +223,7 @@ export class EventConsumer {
          messageData = await this.parseMessage(msg);
 
          // Idempotency check
-         if (this.processedEventIds.has(messageData.messageId)) {
+         if (await this.idempotencyStore.hasProcessed(messageData.messageId)) {
             logger.info(
                `[Event Consumer] Message with ID ${messageData.messageId} has already been processed. Acknowledging without reprocessing.`,
             );
@@ -241,13 +236,12 @@ export class EventConsumer {
          this.channel.ack(msg);
          this.circuitBreaker.onSuccess();
          this.stats.processed++;
-         this.processedEventIds.add(messageData.messageId);
+         await this.idempotencyStore.markProcessed(messageData.messageId);
          this.stats.lastProcessedEvent = messageData.messageId;
          logger.info(`[Event Consumer] Message processed successfully`, {
             messageId: messageData.messageId,
             latency: Date.now() - startTime,
          });
-         this.fifoProcessedEventIdsCleanup();
 
          // Keep track which eventType is causing more failure.
          this.failedEventTypesAndCount.delete(messageData.eventType);
@@ -279,8 +273,6 @@ export class EventConsumer {
                `[Event Consumer] Poison Message Detected.Event type ${eventType} has failed ${currentFailureCount + 1} times which is above the threshold. Message ID: ${messageId}. Error: ${(error as Error).message}`,
             );
          }
-
-         this.fifoProcessedEventIdsCleanup();
       }
 
       if (!isRetryableError(error as any) || !this.retryStrategy.shouldRetry(retryCount)) {
@@ -311,7 +303,7 @@ export class EventConsumer {
          }
 
          const published = this.channel?.sendToQueue(
-            globalConfig.amqp.queue + "_dlq",
+            globalConfig.amqp.queue + "_dl",
             Buffer.from(JSON.stringify(dlqMessageContent)),
             {
                persistent: true,
@@ -405,6 +397,7 @@ export class EventConsumer {
          await this.amqpConnection.close();
          await this.mongoDBConnection.disconnect();
          await this.postgresConnection.disconnect();
+         await this.redisConnection.disconnect();
          logger.info("[Event Consumer] Consumer stopped");
       } catch (err) {
          logger.error("[Event Consumer] Error stopping consumer", {

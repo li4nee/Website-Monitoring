@@ -11,6 +11,7 @@ import { ClientBaseRepo } from "../repos/clientBase.repo";
 import { ApiKeyWithId } from "../../../shared/infra/db/mongo/models/apiKeys.model";
 import { ClientWithId } from "../../../shared/infra/db/mongo/models/client.model";
 import { globalConfig } from "../../../shared/config/global.config";
+import { AuditLogger } from "../../../shared/utils/auditLogger.utils";
 
 export class ApiKeyService {
    protected apiKeyRepo: ApiKeyBaseRepo<ApiKeyWithId>;
@@ -87,6 +88,18 @@ export class ApiKeyService {
             `API key created successfully with id : ${newApiKey._id} for clientId: ${clientId} by user: ${createdBy.id}`,
          );
 
+         // Never include the plaintext/hashed secret in the audit trail — keyId
+         // (the public identifier) is enough to correlate this entry later.
+         AuditLogger.log({
+            action: "api_key.created",
+            actorId: createdBy.id,
+            actorRole: createdBy.role,
+            clientId,
+            targetType: "api_key",
+            targetId: apiKey.keyId,
+            metadata: { name: body.name, environment: body.environment },
+         });
+
          return { keyId: apiKey.keyId, apiKey: apiKey.keyValue };
       } catch (error) {
          logger.error("Error creating API key for client", { error, clientId, createdBy });
@@ -152,6 +165,15 @@ export class ApiKeyService {
 
          await this.apiKeyRepo.delete(apiKeyId);
          logger.info(`API key revoked: ${apiKeyId} for clientId: ${clientId} by user: ${requestedBy.id}`);
+         AuditLogger.log({
+            action: "api_key.revoked",
+            actorId: requestedBy.id,
+            actorRole: requestedBy.role,
+            clientId,
+            targetType: "api_key",
+            targetId: apiKeyId,
+            metadata: { name: apiKey.name },
+         });
       } catch (error) {
          logger.error("Error revoking API key", { error, clientId, apiKeyId, requestedBy });
          throw error;

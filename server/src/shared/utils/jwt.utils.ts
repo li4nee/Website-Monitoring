@@ -31,13 +31,12 @@ export class JwtUtils {
    }
 
    static decodeToken(token: string, secret: string): JwtPayload | null {
-      let maskedPayload: MaskedJwtPayload | null = null;
+      let maskedPayload: MaskedJwtPayload;
       try {
-         maskedPayload = this.verifyToken(token, secret) as MaskedJwtPayload;
+         const verified = this.verifyToken(token, secret);
+         if (!verified || typeof verified === "string") return null;
+         maskedPayload = verified as MaskedJwtPayload;
       } catch (error) {
-         return null;
-      }
-      if (!maskedPayload || typeof maskedPayload === "string") {
          return null;
       }
       const { id, role, permissions, clientId } = maskedPayload;

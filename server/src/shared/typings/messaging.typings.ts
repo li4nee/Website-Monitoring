@@ -38,7 +38,7 @@ export interface EventDataType {
 export interface PublishingMessageType {
    type: EventType;
    data: PublishingEventDataType;
-   publishedAt: String;
+   publishedAt: string;
 }
 
 export interface PublishOptions {

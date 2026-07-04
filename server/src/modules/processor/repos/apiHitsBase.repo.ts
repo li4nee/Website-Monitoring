@@ -7,7 +7,7 @@ import { TimeSeriesBucket } from "../../../modules/analytics/dtos/analyticsRespo
  * Base repository for Api Hits, defining the contract for data access operations.
  */
 export abstract class ApiHitsBaseRepo<T> {
-   abstract createApiHit(eventData: EventDataType): Promise<T>;
+   abstract createApiHit(eventData: EventDataType, retentionDays: number): Promise<T>;
    abstract findWithFilters(
       filters: Partial<T>,
       limit: number,

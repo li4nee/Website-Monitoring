@@ -61,6 +61,22 @@ services:
       - website-monitoring-network
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    container_name: server-monitoring-redis
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - website-monitoring-network
+    restart: unless-stopped
+
   pgadmin:
     image: dpage/pgadmin4:7
     container_name: api-monitoring-pgadmin
@@ -120,6 +136,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - .:/app
 
@@ -129,6 +147,8 @@ volumes:
   mongo_data:
     driver: local
   rabbitmq_data:
+    driver: local
+  redis_data:
     driver: local
   pgadmin_data:
     driver: local

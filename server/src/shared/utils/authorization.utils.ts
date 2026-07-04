@@ -99,4 +99,21 @@ export class AuthorizationUtils {
 
       throw new PermissionNotGranted("You are not authorized to view analytics.");
    }
+
+   static canViewAuditLogs(user: UserInsideAuthorizedRequest, targetClientId: string): boolean {
+      if (user.role === USER_ROLE.SUPER_ADMIN) {
+         return true;
+      }
+
+      // Seeing your own tenant's "who did what" trail is a baseline admin
+      // capability, not gated by one of the delegable permission flags.
+      if (user.role === USER_ROLE.CLIENT_ADMIN) {
+         if (!user.clientId || user.clientId !== targetClientId) {
+            throw new PermissionNotGranted("You are not authorized to view audit logs for this client.");
+         }
+         return true;
+      }
+
+      throw new PermissionNotGranted("You are not authorized to view audit logs.");
+   }
 }

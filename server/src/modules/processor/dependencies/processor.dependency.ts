@@ -10,6 +10,8 @@ import { EndPointMetricsBaseRepo } from "../repos/endpointMetricsBase.repo";
 import { ProcessorService } from "../services/processor.service";
 import mongoConnection from "../../../shared/infra/db/mongo/mongoConnection";
 import postgresConnection from "../../../shared/infra/db/postgres/postgresConnection";
+import redisConnection from "../../../shared/infra/redisConnection";
+import { RedisIdempotencyStore } from "../../../shared/infra/redisIdempotencyStore";
 import { CircuitBreakerOptions } from "../../../shared/typings/circuitBreaker.typings";
 import { globalConfig } from "../../../shared/config/global.config";
 import { CircuitBreaker } from "../../../shared/infra/resilience/circuitBreaker.infra";
@@ -40,14 +42,14 @@ export class ProcessorDependenciesContainer {
          processorService: new ProcessorService(repos.apiHitRepo, repos.endPointMetricsRepo),
       };
 
-      let circuitBreakerOptions: CircuitBreakerOptions = {
+      const circuitBreakerOptions: CircuitBreakerOptions = {
          failureThreshold: globalConfig.infra.circuitBreakerFailureThreshold || 5,
          cooldownTimeInMs: globalConfig.infra.circuitBreakerCooldownTimeInMs, // 30 seconds
          halfOpenStateMaxAttempts: globalConfig.infra.circuitBreakerHalfOpenStateMaxAttempts || 2,
       };
       const circuitBreaker = new CircuitBreaker(circuitBreakerOptions);
 
-      let retryStrategyOptions: RetryStrategyOptions = {
+      const retryStrategyOptions: RetryStrategyOptions = {
          maxRetries: globalConfig.infra.retryAttempts || 5,
          baseRetryDelayInMs: globalConfig.infra.retryDelay || 1000, // 1 second
          maxRetryDelayInMs: globalConfig.infra.maxRetryDelay || 30000, // 30 seconds
@@ -55,6 +57,7 @@ export class ProcessorDependenciesContainer {
       };
       const retryStrategy = new RetryStrategy(retryStrategyOptions);
       const channelManager = new ConfirmChannelManager(amqpAdapter);
+      const idempotencyStore = new RedisIdempotencyStore(redisConnection.getClient(), globalConfig.consumer.idempotencyTtlSeconds);
       const consumers = {
          eventConsumer: new EventConsumer({
             processorService: services.processorService,
@@ -63,6 +66,8 @@ export class ProcessorDependenciesContainer {
             circuitBreaker,
             mongoDBConnection: mongoConnection,
             postgresConnection: postgresConnection,
+            redisConnection: redisConnection,
+            idempotencyStore,
          }),
       };
 

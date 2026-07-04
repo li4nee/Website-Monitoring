@@ -1,3 +1,8 @@
+-- This file only seeds a brand-new postgres container on first boot (mounted
+-- into /docker-entrypoint-initdb.d/ by docker-compose.yml). It is NOT re-run
+-- against an existing database. For schema changes going forward, add a
+-- Kysely migration under src/shared/infra/db/postgres/migrations/ and run
+-- `npm run migrate` — that is the source of truth for schema evolution.
 CREATE TABLE IF NOT EXISTS endpoint_metrics (
     id BIGSERIAL PRIMARY KEY,
     client_id VARCHAR(24) NOT NULL,

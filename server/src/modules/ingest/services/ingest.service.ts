@@ -27,7 +27,7 @@ export class IngestService {
             userAgent: data.userAgent || "unknown",
          };
 
-         let publishOptions = {
+         const publishOptions = {
             persistent: true,
             contentType: "application/json",
             messageId: eventData.eventId,
@@ -35,7 +35,7 @@ export class IngestService {
             timestamp: Math.floor(Date.now() / 1000), // RabbitMQ expects timestamp in seconds
          };
 
-         let publishData = {
+         const publishData = {
             eventData,
             messageId: publishOptions.messageId,
             correlationId: publishOptions.correlationId,

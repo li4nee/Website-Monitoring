@@ -59,10 +59,15 @@ export class MongoUserRepo extends UserBaseRepo<UserWithId> {
    }
 
    async findIfAnyExists(isSuperAdmin: boolean, email: string): Promise<boolean> {
-      let doc = null;
-      if (isSuperAdmin) doc = await this.model.findOne({}, { _id: 1 });
-      if (email) doc = await this.model.findOne({ email }, { _id: 1 });
-      return !!doc;
+      if (isSuperAdmin) {
+         const anyUserExists = await this.model.findOne({}, { _id: 1 });
+         return !!anyUserExists;
+      }
+      if (email) {
+         const emailExists = await this.model.findOne({ email }, { _id: 1 });
+         return !!emailExists;
+      }
+      return false;
    }
 
    async findByClientId(

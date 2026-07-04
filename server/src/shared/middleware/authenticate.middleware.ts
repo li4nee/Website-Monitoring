@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Response } from "express";
 import { UnauthorizedError } from "../typings/error.typings";
 import { JwtUtils } from "../utils/jwt.utils";
 import { AuthorizedRequest } from "../typings/auth.typings";
@@ -6,9 +6,8 @@ import logger from "../config/logger.config";
 import { globalConfig } from "../config/global.config";
 
 export function authenticate(req: AuthorizedRequest, res: Response, next: NextFunction) {
-   let token = null;
    if (!req.cookies || !req.cookies["authToken"]) throw new UnauthorizedError("Authentication token is missing");
-   token = req.cookies["authToken"];
+   const token = req.cookies["authToken"];
 
    try {
       const decoded = JwtUtils.decodeToken(token, globalConfig.jwt.secret);
