@@ -4,7 +4,8 @@ import logger from "../config/logger.config";
 
 /**
  * Redis connection manager class. Semi Singleton.
- * Backs the cross-instance idempotency store used by the event consumer.
+ * Backs the cross-instance idempotency store used by the event consumer,
+ * and the Redis-backed rate limit store used by the API server.
  */
 class RedisConnection {
    private client: Redis | null = null;

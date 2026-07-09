@@ -1,6 +1,11 @@
 import { Types } from "mongoose";
 import logger from "../../../shared/config/logger.config";
-import { InvalidInputError, PermissionNotGranted, ResourceNotFoundError, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
+import {
+   InvalidInputError,
+   PermissionNotGranted,
+   ResourceNotFoundError,
+   ResourceNotInitializedError,
+} from "../../../shared/typings/error.typings";
 import { ApiKeyBaseRepo } from "../repos/apiKeyBase.repo";
 import { AuthorizationUtils } from "../../../shared/utils/authorization.utils";
 import { CreateApiKeyDtoType } from "../dtos/createApiKey.dto";

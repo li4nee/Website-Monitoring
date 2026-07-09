@@ -11,12 +11,7 @@ export class AlertDispatcherService {
    private channels: Map<string, IAlertChannel>;
 
    constructor() {
-      const channelList: IAlertChannel[] = [
-         new WebhookChannel(),
-         new SlackChannel(),
-         new DiscordChannel(),
-         new EmailChannel(),
-      ];
+      const channelList: IAlertChannel[] = [new WebhookChannel(), new SlackChannel(), new DiscordChannel(), new EmailChannel()];
       this.channels = new Map(channelList.map((c) => [c.type, c]));
    }
 

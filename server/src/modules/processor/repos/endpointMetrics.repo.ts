@@ -167,7 +167,12 @@ export class PgEndPointMetricsRepo extends EndPointMetricsBaseRepo<EndpointMetri
    }
 
    /** Gets top endpoints by total hits. */
-   async getTopEndpointsByTotalHits(limit: number, startTime?: Date, endTime?: Date, clientId?: string): Promise<EndpointMetrics[]> {
+   async getTopEndpointsByTotalHits(
+      limit: number,
+      startTime?: Date,
+      endTime?: Date,
+      clientId?: string,
+   ): Promise<EndpointMetrics[]> {
       if (!startTime) {
          startTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
       }
@@ -175,7 +180,12 @@ export class PgEndPointMetricsRepo extends EndPointMetricsBaseRepo<EndpointMetri
    }
 
    /** Gets top endpoints by error hits. */
-   async getTopEndpointsByErrorHits(limit: number, startTime?: Date, endTime?: Date, clientId?: string): Promise<EndpointMetrics[]> {
+   async getTopEndpointsByErrorHits(
+      limit: number,
+      startTime?: Date,
+      endTime?: Date,
+      clientId?: string,
+   ): Promise<EndpointMetrics[]> {
       if (!startTime) {
          startTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
       }
@@ -183,14 +193,24 @@ export class PgEndPointMetricsRepo extends EndPointMetricsBaseRepo<EndpointMetri
    }
 
    /** Gets top endpoints by total latency. */
-   async getTopEndpointsByTotalLatency(limit: number, startTime?: Date, endTime?: Date, clientId?: string): Promise<EndpointMetrics[]> {
+   async getTopEndpointsByTotalLatency(
+      limit: number,
+      startTime?: Date,
+      endTime?: Date,
+      clientId?: string,
+   ): Promise<EndpointMetrics[]> {
       if (!startTime) {
          startTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
       }
       return this.getTopEndpointsByMetric("total_latency", limit, startTime, endTime, clientId);
    }
 
-   async getTopEndpointsByAverageLatency(limit: number, startTime?: Date, endTime?: Date, clientId?: string): Promise<EndpointMetrics[]> {
+   async getTopEndpointsByAverageLatency(
+      limit: number,
+      startTime?: Date,
+      endTime?: Date,
+      clientId?: string,
+   ): Promise<EndpointMetrics[]> {
       try {
          const safeLimit = Math.min(Math.max(limit, 1), 100);
          let query = PostgresDB.selectFrom("endpoint_metrics")

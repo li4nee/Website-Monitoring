@@ -97,9 +97,7 @@ export class MongoAlertFireLogRepo extends AlertFireLogBaseRepo<AlertFireLogDocu
 
    async findLastFireForAlert(alertId: string): Promise<AlertFireLogDocument | null> {
       try {
-         return await this.model
-            .findOne({ alertId: new Types.ObjectId(alertId) })
-            .sort({ firedAt: -1 });
+         return await this.model.findOne({ alertId: new Types.ObjectId(alertId) }).sort({ firedAt: -1 });
       } catch (error) {
          logger.error(`[MongoAlertFireLogRepo] Error finding last fire for alertId: ${alertId}`, { error });
          throw error;

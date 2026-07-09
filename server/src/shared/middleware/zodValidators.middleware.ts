@@ -3,9 +3,11 @@ import { z } from "zod";
 import { ResponseFormatter } from "../utils/responseFormatter.utils";
 import { Types } from "mongoose";
 
-export const mongoObjectId = z.string().refine((val) => Types.ObjectId.isValid(val) && new Types.ObjectId(val).toString() === val, {
-   message: "Invalid ID format",
-});
+export const mongoObjectId = z
+   .string()
+   .refine((val) => Types.ObjectId.isValid(val) && new Types.ObjectId(val).toString() === val, {
+      message: "Invalid ID format",
+   });
 
 export const validateBody = (schema: z.ZodType<any>) => async (req: Request, res: Response, next: NextFunction) => {
    try {

@@ -4,7 +4,14 @@ import { authorize } from "../../../shared/middleware/authorize.middleware";
 import { validateQuery } from "../../../shared/middleware/zodValidators.middleware";
 import { USER_ROLE } from "../../../shared/typings/auth.typings";
 import AnalyticsDependencyContainer from "../dependencies/analytics.dependency";
-import { AnalyticsTimeRangeQueryDTO, AnalyticsTimeSeriesQueryDTO, EndpointDrilldownQueryDTO, ExportQueryDTO, RawLogsQueryDTO, ServicesQueryDTO } from "../dtos/analyticsQuery.dto";
+import {
+   AnalyticsTimeRangeQueryDTO,
+   AnalyticsTimeSeriesQueryDTO,
+   EndpointDrilldownQueryDTO,
+   ExportQueryDTO,
+   RawLogsQueryDTO,
+   ServicesQueryDTO,
+} from "../dtos/analyticsQuery.dto";
 
 const router = Router();
 const { analyticsController } = AnalyticsDependencyContainer.init().controllers;

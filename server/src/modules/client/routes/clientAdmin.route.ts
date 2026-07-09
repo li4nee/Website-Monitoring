@@ -99,11 +99,8 @@ router.delete(
  * @desc List all clients
  * @access Private (Super Admin only)
  */
-router.get(
-   "/",
-   authenticate,
-   authorize([USER_ROLE.SUPER_ADMIN]),
-   (req: Request, res: Response, next: NextFunction) => clientController.listClients(req, res, next),
+router.get("/", authenticate, authorize([USER_ROLE.SUPER_ADMIN]), (req: Request, res: Response, next: NextFunction) =>
+   clientController.listClients(req, res, next),
 );
 
 /**

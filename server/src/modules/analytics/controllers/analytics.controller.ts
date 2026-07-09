@@ -3,7 +3,14 @@ import { AuthorizedRequest } from "../../../shared/typings/auth.typings";
 import { ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { ResponseFormatter } from "../../../shared/utils/responseFormatter.utils";
 import { IAnalyticsService } from "../contracts/IAnalyticsService.contract";
-import { AnalyticsTimeRangeQueryDTOType, AnalyticsTimeSeriesQueryDTOType, EndpointDrilldownQueryDTOType, ExportQueryDTOType, RawLogsQueryDTOType, ServicesQueryDTOType } from "../dtos/analyticsQuery.dto";
+import {
+   AnalyticsTimeRangeQueryDTOType,
+   AnalyticsTimeSeriesQueryDTOType,
+   EndpointDrilldownQueryDTOType,
+   ExportQueryDTOType,
+   RawLogsQueryDTOType,
+   ServicesQueryDTOType,
+} from "../dtos/analyticsQuery.dto";
 
 export class AnalyticsController {
    protected analyticsService: IAnalyticsService;
@@ -37,7 +44,9 @@ export class AnalyticsController {
       try {
          const query = req.query as unknown as AnalyticsTimeRangeQueryDTOType;
          const endpoints = await this.analyticsService.getTopEndpointsByHits(req.user!, query);
-         return res.status(200).json(ResponseFormatter.success("Top endpoints by hits retrieved successfully.", 200, { endpoints }));
+         return res
+            .status(200)
+            .json(ResponseFormatter.success("Top endpoints by hits retrieved successfully.", 200, { endpoints }));
       } catch (error) {
          next(error);
       }
@@ -50,7 +59,9 @@ export class AnalyticsController {
       try {
          const query = req.query as unknown as AnalyticsTimeRangeQueryDTOType;
          const endpoints = await this.analyticsService.getTopEndpointsByErrors(req.user!, query);
-         return res.status(200).json(ResponseFormatter.success("Top endpoints by errors retrieved successfully.", 200, { endpoints }));
+         return res
+            .status(200)
+            .json(ResponseFormatter.success("Top endpoints by errors retrieved successfully.", 200, { endpoints }));
       } catch (error) {
          next(error);
       }
@@ -63,7 +74,9 @@ export class AnalyticsController {
       try {
          const query = req.query as unknown as AnalyticsTimeRangeQueryDTOType;
          const endpoints = await this.analyticsService.getTopEndpointsByLatency(req.user!, query);
-         return res.status(200).json(ResponseFormatter.success("Top endpoints by latency retrieved successfully.", 200, { endpoints }));
+         return res
+            .status(200)
+            .json(ResponseFormatter.success("Top endpoints by latency retrieved successfully.", 200, { endpoints }));
       } catch (error) {
          next(error);
       }

@@ -1,6 +1,5 @@
 import { RETRYABLE_ERRORS, RetryableError } from "../typings/retry.typings";
 
-
 export function isRetryableError(error: RetryableError): boolean {
    if (!error) return false;
 

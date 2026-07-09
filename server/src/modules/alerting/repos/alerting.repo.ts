@@ -62,10 +62,7 @@ export class MongoAlertingRepo extends AlertingBaseRepo<AlertingDocument> {
       }
    }
 
-   async findEnabled(
-      limit: number = 100,
-      cursor?: string,
-   ): Promise<{ data: AlertingDocument[]; nextCursor?: string }> {
+   async findEnabled(limit: number = 100, cursor?: string): Promise<{ data: AlertingDocument[]; nextCursor?: string }> {
       try {
          const filter: Record<string, any> = { isEnabled: true };
 

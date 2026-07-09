@@ -10,9 +10,7 @@ export class EmailChannel implements IAlertChannel {
       host: globalConfig.email.host,
       port: globalConfig.email.port,
       secure: globalConfig.email.secure,
-      auth: globalConfig.email.user
-         ? { user: globalConfig.email.user, pass: globalConfig.email.pass }
-         : undefined,
+      auth: globalConfig.email.user ? { user: globalConfig.email.user, pass: globalConfig.email.pass } : undefined,
    });
 
    private buildHtml(payload: DispatchPayload): string {

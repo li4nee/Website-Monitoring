@@ -11,10 +11,7 @@ export class AlertFireLogService {
    private fireLogRepo: AlertFireLogBaseRepo<AlertFireLogDocument>;
    private alertingRepo: AlertingBaseRepo<AlertingDocument>;
 
-   constructor(
-      fireLogRepo: AlertFireLogBaseRepo<AlertFireLogDocument>,
-      alertingRepo: AlertingBaseRepo<AlertingDocument>,
-   ) {
+   constructor(fireLogRepo: AlertFireLogBaseRepo<AlertFireLogDocument>, alertingRepo: AlertingBaseRepo<AlertingDocument>) {
       this.fireLogRepo = fireLogRepo;
       this.alertingRepo = alertingRepo;
    }

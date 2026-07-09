@@ -6,11 +6,11 @@ import { EndpointMetrics } from "../../../shared/infra/db/postgres/postgresTypes
 import { AlertEvaluationError } from "../../../shared/typings/error.typings";
 
 export interface AlertConditions {
-   error_rate_threshold?: number;   // percentage, e.g. 5 means 5%
-   avg_latency_threshold?: number;  // milliseconds
-   min_hits_threshold?: number;     // minimum expected hits in window; fires if below
-   lookback_minutes?: number;       // how far back to look, default 60
-   cooldown_minutes?: number;       // suppress re-fires within this window, default 60
+   error_rate_threshold?: number; // percentage, e.g. 5 means 5%
+   avg_latency_threshold?: number; // milliseconds
+   min_hits_threshold?: number; // minimum expected hits in window; fires if below
+   lookback_minutes?: number; // how far back to look, default 60
+   cooldown_minutes?: number; // suppress re-fires within this window, default 60
 }
 
 export interface EvaluationResult {
@@ -57,8 +57,8 @@ export class AlertEvaluatorService {
       const label = lookbackMinutes >= 7 * 24 * 60 ? "Weekly" : "Daily";
       const reasons = [
          `${label} summary: ${stats.total_hits} hits, ${stats.total_errors} errors, ` +
-         `${stats.error_rate}% error rate, ${stats.avg_latency}ms avg latency, ` +
-         `${stats.unique_endpoints} unique endpoints`,
+            `${stats.error_rate}% error rate, ${stats.avg_latency}ms avg latency, ` +
+            `${stats.unique_endpoints} unique endpoints`,
       ];
 
       return { fired: true, reasons, stats };
@@ -74,7 +74,10 @@ export class AlertEvaluatorService {
       try {
          stats = await this.endpointMetricsRepo.getOverviewStats(clientId, startTime);
       } catch (error) {
-         const evalError = new AlertEvaluationError(alert._id.toString(), `Failed to fetch stats for threshold alert ${alert._id}`);
+         const evalError = new AlertEvaluationError(
+            alert._id.toString(),
+            `Failed to fetch stats for threshold alert ${alert._id}`,
+         );
          logger.error(`[AlertEvaluatorService] ${evalError.message}`, { alertId: evalError.alertId, cause: error });
          return { fired: false, reasons: [], stats: EMPTY_STATS };
       }
@@ -82,9 +85,7 @@ export class AlertEvaluatorService {
       const reasons: string[] = [];
 
       if (conditions.error_rate_threshold !== undefined && stats.error_rate > conditions.error_rate_threshold) {
-         reasons.push(
-            `Error rate ${stats.error_rate.toFixed(2)}% exceeds threshold ${conditions.error_rate_threshold}%`,
-         );
+         reasons.push(`Error rate ${stats.error_rate.toFixed(2)}% exceeds threshold ${conditions.error_rate_threshold}%`);
       }
 
       if (conditions.avg_latency_threshold !== undefined && stats.avg_latency > conditions.avg_latency_threshold) {
@@ -94,9 +95,7 @@ export class AlertEvaluatorService {
       }
 
       if (conditions.min_hits_threshold !== undefined && stats.total_hits < conditions.min_hits_threshold) {
-         reasons.push(
-            `Total hits ${stats.total_hits} dropped below minimum threshold ${conditions.min_hits_threshold}`,
-         );
+         reasons.push(`Total hits ${stats.total_hits} dropped below minimum threshold ${conditions.min_hits_threshold}`);
       }
 
       return { fired: reasons.length > 0, reasons, stats };

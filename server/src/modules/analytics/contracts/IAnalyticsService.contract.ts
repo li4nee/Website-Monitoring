@@ -1,5 +1,12 @@
 import { UserInsideAuthorizedRequest } from "../../../shared/typings/auth.typings";
-import { AnalyticsTimeRangeQueryDTOType, AnalyticsTimeSeriesQueryDTOType, EndpointDrilldownQueryDTOType, ExportQueryDTOType, RawLogsQueryDTOType, ServicesQueryDTOType } from "../dtos/analyticsQuery.dto";
+import {
+   AnalyticsTimeRangeQueryDTOType,
+   AnalyticsTimeSeriesQueryDTOType,
+   EndpointDrilldownQueryDTOType,
+   ExportQueryDTOType,
+   RawLogsQueryDTOType,
+   ServicesQueryDTOType,
+} from "../dtos/analyticsQuery.dto";
 import { EndpointSummary, OverviewStats, RawLogsPage, TimeSeriesBucket } from "../dtos/analyticsResponse.dto";
 
 export interface IAnalyticsService {

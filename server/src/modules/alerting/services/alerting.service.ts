@@ -17,10 +17,7 @@ export class AlertingService implements IAlertingService {
    private alertingRepo: AlertingBaseRepo<AlertingDocument>;
    private fireLogRepo: AlertFireLogBaseRepo<AlertFireLogDocument>;
 
-   constructor(
-      alertingRepo: AlertingBaseRepo<AlertingDocument>,
-      fireLogRepo: AlertFireLogBaseRepo<AlertFireLogDocument>,
-   ) {
+   constructor(alertingRepo: AlertingBaseRepo<AlertingDocument>, fireLogRepo: AlertFireLogBaseRepo<AlertFireLogDocument>) {
       if (!alertingRepo || !fireLogRepo) {
          throw new ResourceNotInitializedError("[AlertingService] All repositories must be provided to AlertingService");
       }

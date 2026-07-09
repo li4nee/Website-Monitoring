@@ -252,11 +252,7 @@ export class EventConsumer {
       }
    }
 
-   private async handleProcessingError(
-      error: unknown,
-      msg: amqp.ConsumeMessage,
-      messageData: ParsedMessageType | null,
-   ) {
+   private async handleProcessingError(error: unknown, msg: amqp.ConsumeMessage, messageData: ParsedMessageType | null) {
       const retryCount = messageData?.retryCount || 0;
       const messageId = messageData?.messageId || msg.properties.messageId || "unknown";
       let reason = error instanceof Error ? error.message : "Unknown error";

@@ -57,7 +57,10 @@ export class ProcessorDependenciesContainer {
       };
       const retryStrategy = new RetryStrategy(retryStrategyOptions);
       const channelManager = new ConfirmChannelManager(amqpAdapter);
-      const idempotencyStore = new RedisIdempotencyStore(redisConnection.getClient(), globalConfig.consumer.idempotencyTtlSeconds);
+      const idempotencyStore = new RedisIdempotencyStore(
+         redisConnection.getClient(),
+         globalConfig.consumer.idempotencyTtlSeconds,
+      );
       const consumers = {
          eventConsumer: new EventConsumer({
             processorService: services.processorService,

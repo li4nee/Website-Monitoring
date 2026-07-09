@@ -1,6 +1,11 @@
 import { Types } from "mongoose";
 import logger from "../../../shared/config/logger.config";
-import { InvalidInputError, PermissionNotGranted, ResourceNotFoundError, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
+import {
+   InvalidInputError,
+   PermissionNotGranted,
+   ResourceNotFoundError,
+   ResourceNotInitializedError,
+} from "../../../shared/typings/error.typings";
 import { UserBaseRepo } from "../../auth/repos/userBase.repo";
 import { CreateClientDTOType } from "../dtos/createClient.dto";
 import { UpdateClientDTOType } from "../dtos/updateClient.dto";
@@ -203,11 +208,7 @@ export class ClientService {
       }
    }
 
-   async updateClient(
-      clientId: string,
-      data: UpdateClientDTOType,
-      requestedBy: UserInsideAuthorizedRequest,
-   ): Promise<Client> {
+   async updateClient(clientId: string, data: UpdateClientDTOType, requestedBy: UserInsideAuthorizedRequest): Promise<Client> {
       try {
          this.requireSuperAdmin(requestedBy);
          const updated = await this.clientRepo.update(clientId, data as any);
@@ -259,10 +260,16 @@ export class ClientService {
          this.requireAdminForClient(requestedBy, clientId);
          const user = await this.userRepo.findById(userId);
          if (!user) throw new ResourceNotFoundError("User not found.");
-         if (user.clientId?.toString() !== clientId)
-            throw new PermissionNotGranted("User does not belong to this client.");
+         if (user.clientId?.toString() !== clientId) throw new PermissionNotGranted("User does not belong to this client.");
 
-         const base = user.permissions ?? { canCreateApiKeys: false, canManageUsers: false, canViewRawLogs: false, canViewAnalytics: false, canManageSettings: false, canExportData: false };
+         const base = user.permissions ?? {
+            canCreateApiKeys: false,
+            canManageUsers: false,
+            canViewRawLogs: false,
+            canViewAnalytics: false,
+            canManageSettings: false,
+            canExportData: false,
+         };
          const merged = {
             canCreateApiKeys: permissions.canCreateApiKeys ?? base.canCreateApiKeys,
             canManageUsers: permissions.canManageUsers ?? base.canManageUsers,
@@ -300,12 +307,13 @@ export class ClientService {
          this.requireAdminForClient(requestedBy, clientId);
          const user = await this.userRepo.findById(userId);
          if (!user) throw new ResourceNotFoundError("User not found.");
-         if (user.clientId?.toString() !== clientId)
-            throw new PermissionNotGranted("User does not belong to this client.");
+         if (user.clientId?.toString() !== clientId) throw new PermissionNotGranted("User does not belong to this client.");
 
          const updated = await this.userRepo.update(userId, { isActive });
          if (!updated) throw new ResourceNotFoundError("User not found.");
-         logger.info(`User ${isActive ? "activated" : "deactivated"}: ${userId} for clientId: ${clientId} by user: ${requestedBy.id}`);
+         logger.info(
+            `User ${isActive ? "activated" : "deactivated"}: ${userId} for clientId: ${clientId} by user: ${requestedBy.id}`,
+         );
          AuditLogger.log({
             action: isActive ? "user.activated" : "user.deactivated",
             actorId: requestedBy.id,

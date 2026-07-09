@@ -1,6 +1,11 @@
 import { globalConfig } from "../../../shared/config/global.config";
 import { User, UserDocument, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
-import { InvalidInputError, PermissionNotGranted, ResourceNotFoundError, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
+import {
+   InvalidInputError,
+   PermissionNotGranted,
+   ResourceNotFoundError,
+   ResourceNotInitializedError,
+} from "../../../shared/typings/error.typings";
 import { JwtUtils } from "../../../shared/utils/jwt.utils";
 import { UserBaseRepo } from "../repos/userBase.repo";
 import logger from "../../../shared/config/logger.config";

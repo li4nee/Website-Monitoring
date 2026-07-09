@@ -7,7 +7,14 @@ import { ApiHitsBaseRepo } from "../../processor/repos/apiHitsBase.repo";
 import { ApiHitsWithId } from "../../../shared/infra/db/mongo/models/apiHits.model";
 import { EndPointMetricsBaseRepo } from "../../processor/repos/endpointMetricsBase.repo";
 import { IAnalyticsService } from "../contracts/IAnalyticsService.contract";
-import { AnalyticsTimeRangeQueryDTOType, AnalyticsTimeSeriesQueryDTOType, EndpointDrilldownQueryDTOType, ExportQueryDTOType, RawLogsQueryDTOType, ServicesQueryDTOType } from "../dtos/analyticsQuery.dto";
+import {
+   AnalyticsTimeRangeQueryDTOType,
+   AnalyticsTimeSeriesQueryDTOType,
+   EndpointDrilldownQueryDTOType,
+   ExportQueryDTOType,
+   RawLogsQueryDTOType,
+   ServicesQueryDTOType,
+} from "../dtos/analyticsQuery.dto";
 import { EndpointSummary, OverviewStats, RawLogsPage, TimeSeriesBucket } from "../dtos/analyticsResponse.dto";
 
 export class AnalyticsService implements IAnalyticsService {
@@ -16,7 +23,9 @@ export class AnalyticsService implements IAnalyticsService {
 
    constructor(endPointMetricsRepo: EndPointMetricsBaseRepo<EndpointMetrics>, apiHitsRepo: ApiHitsBaseRepo<ApiHitsWithId>) {
       if (!endPointMetricsRepo) {
-         throw new ResourceNotInitializedError("[AnalyticsService] EndpointMetrics repository must be provided to AnalyticsService");
+         throw new ResourceNotInitializedError(
+            "[AnalyticsService] EndpointMetrics repository must be provided to AnalyticsService",
+         );
       }
       if (!apiHitsRepo) {
          throw new ResourceNotInitializedError("[AnalyticsService] ApiHits repository must be provided to AnalyticsService");
@@ -43,7 +52,12 @@ export class AnalyticsService implements IAnalyticsService {
       });
    }
 
-   async getOverview(user: UserInsideAuthorizedRequest, clientId: string, startTime?: Date, endTime?: Date): Promise<OverviewStats> {
+   async getOverview(
+      user: UserInsideAuthorizedRequest,
+      clientId: string,
+      startTime?: Date,
+      endTime?: Date,
+   ): Promise<OverviewStats> {
       try {
          AuthorizationUtils.canViewAnalytics(user, clientId);
          logger.info(`[AnalyticsService] Fetching overview stats for clientId: ${clientId}`);
@@ -54,7 +68,10 @@ export class AnalyticsService implements IAnalyticsService {
       }
    }
 
-   async getTopEndpointsByHits(user: UserInsideAuthorizedRequest, query: AnalyticsTimeRangeQueryDTOType): Promise<EndpointSummary[]> {
+   async getTopEndpointsByHits(
+      user: UserInsideAuthorizedRequest,
+      query: AnalyticsTimeRangeQueryDTOType,
+   ): Promise<EndpointSummary[]> {
       try {
          AuthorizationUtils.canViewAnalytics(user, query.clientId);
          logger.info(`[AnalyticsService] Fetching top endpoints by hits for clientId: ${query.clientId}`);
@@ -71,7 +88,10 @@ export class AnalyticsService implements IAnalyticsService {
       }
    }
 
-   async getTopEndpointsByErrors(user: UserInsideAuthorizedRequest, query: AnalyticsTimeRangeQueryDTOType): Promise<EndpointSummary[]> {
+   async getTopEndpointsByErrors(
+      user: UserInsideAuthorizedRequest,
+      query: AnalyticsTimeRangeQueryDTOType,
+   ): Promise<EndpointSummary[]> {
       try {
          AuthorizationUtils.canViewAnalytics(user, query.clientId);
          logger.info(`[AnalyticsService] Fetching top endpoints by errors for clientId: ${query.clientId}`);
@@ -88,7 +108,10 @@ export class AnalyticsService implements IAnalyticsService {
       }
    }
 
-   async getTopEndpointsByLatency(user: UserInsideAuthorizedRequest, query: AnalyticsTimeRangeQueryDTOType): Promise<EndpointSummary[]> {
+   async getTopEndpointsByLatency(
+      user: UserInsideAuthorizedRequest,
+      query: AnalyticsTimeRangeQueryDTOType,
+   ): Promise<EndpointSummary[]> {
       try {
          AuthorizationUtils.canViewAnalytics(user, query.clientId);
          logger.info(`[AnalyticsService] Fetching top endpoints by latency for clientId: ${query.clientId}`);
@@ -127,7 +150,10 @@ export class AnalyticsService implements IAnalyticsService {
       }
    }
 
-   async getEndpointDrilldown(user: UserInsideAuthorizedRequest, query: EndpointDrilldownQueryDTOType): Promise<TimeSeriesBucket[]> {
+   async getEndpointDrilldown(
+      user: UserInsideAuthorizedRequest,
+      query: EndpointDrilldownQueryDTOType,
+   ): Promise<TimeSeriesBucket[]> {
       try {
          AuthorizationUtils.canViewRawLogs(user, query.clientId);
          logger.info(
@@ -158,7 +184,11 @@ export class AnalyticsService implements IAnalyticsService {
       }
    }
 
-   async exportLogs(user: UserInsideAuthorizedRequest, query: ExportQueryDTOType, onRow: (csvRow: string) => void): Promise<void> {
+   async exportLogs(
+      user: UserInsideAuthorizedRequest,
+      query: ExportQueryDTOType,
+      onRow: (csvRow: string) => void,
+   ): Promise<void> {
       try {
          AuthorizationUtils.canExportData(user, query.clientId);
          logger.info(`[AnalyticsService] Exporting logs as CSV for clientId: ${query.clientId}`);
