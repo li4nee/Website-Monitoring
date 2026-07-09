@@ -67,6 +67,7 @@ const envSchema = z.object({
    CONSUMER_PREFETCH_COUNT: numeric,
    CONSUMER_POSTGRES_METRIC_UPSERT_RETRY_ATTEMPTS: numeric,
    CONSUMER_IDEMPOTENCY_TTL_SECONDS: numeric,
+   CLIENT_RETENTION_CACHE_TTL_SECONDS: numeric,
    CONSUMER_FAILURE_THRESHOLD_FOR_EVENT_TYPE: numeric,
 
    EVENT_CONSUMER_STARTUP_RETRY_STRATEGY_MAX_RETRIES: numeric,
@@ -198,6 +199,8 @@ export const globalConfig = {
       // it's allowed to expire (shared across all consumer instances, so scaling
       // out horizontally doesn't reintroduce duplicate processing).
       idempotencyTtlSeconds: parseInt(env.CONSUMER_IDEMPOTENCY_TTL_SECONDS || "3600", 10),
+
+      retentionCacheTtlSeconds: parseInt(env.CLIENT_RETENTION_CACHE_TTL_SECONDS || "300", 10),
 
       // To find the poison event type causing continuous failure in consumer.
       failureThresholdForEventTypeInConsumer: parseInt(env.CONSUMER_FAILURE_THRESHOLD_FOR_EVENT_TYPE || "10", 10),

@@ -7,6 +7,7 @@ import logger from "./shared/config/logger.config";
 import mongoConnection from "./shared/infra/db/mongo/mongoConnection";
 import postgresConnection from "./shared/infra/db/postgres/postgresConnection";
 import amqpConnection from "./shared/infra/amqpConnection";
+import redisConnection from "./shared/infra/redisConnection";
 import { ResponseFormatter } from "./shared/utils/responseFormatter.utils";
 import { CORSError, ResourceNotFoundError } from "./shared/typings/error.typings";
 import { GlobalErrorHandler } from "./shared/middleware/globalErrorHandler.middleware";
@@ -70,12 +71,16 @@ app.set("trust proxy", 1);
 app.get("/health", async (req: Request, res: Response) => {
    const isProduction = globalConfig.node_env === "production";
    try {
-      const [mongoStatus, postgresStatus, amqpStatus] = await Promise.all([
+      const [mongoStatus, postgresStatus, amqpStatus, redisStatus] = await Promise.all([
          mongoConnection.getConnectionStatus(),
          postgresConnection.checkConnectionStatus(),
          amqpConnection.getConnectionStatus(),
+         redisConnection.getConnectionStatus(),
       ]);
 
+      // Redis is intentionally excluded from `allHealthy`: rate limiting fails
+      // open (see passOnStoreError in rateLimit.infra.ts), so a Redis outage
+      // degrades a non-critical feature rather than the whole API.
       const allHealthy = mongoStatus && postgresStatus && amqpStatus;
       const statusCode = allHealthy ? 200 : 503;
 
@@ -84,7 +89,9 @@ app.get("/health", async (req: Request, res: Response) => {
          ResponseFormatter.success(allHealthy ? "Server is healthy" : "Server is degraded", statusCode, {
             status: allHealthy ? "HEALTHY" : "DEGRADED",
             uptime: process.uptime(),
-            ...(isProduction ? {} : { connectionStatus: { mongo: mongoStatus, postgres: postgresStatus, amqp: amqpStatus } }),
+            ...(isProduction
+               ? {}
+               : { connectionStatus: { mongo: mongoStatus, postgres: postgresStatus, amqp: amqpStatus, redis: redisStatus } }),
          }),
       );
    } catch (err) {
@@ -138,6 +145,7 @@ const gracefulShutdown = async () => {
       await mongoConnection.disconnect();
       await postgresConnection.disconnect();
       await amqpConnection.close();
+      await redisConnection.disconnect();
 
       logger.info("Server and all connections closed gracefully");
       process.exit(0);
@@ -163,8 +171,13 @@ process.on("unhandledRejection", (reason, promise) => {
  */
 const startServer = async () => {
    try {
-      logger.info("Initializing connections to MongoDB, PostgreSQL, and RabbitMQ...");
-      await Promise.all([mongoConnection.connect(), postgresConnection.testConnection(), amqpConnection.connect()]);
+      logger.info("Initializing connections to MongoDB, PostgreSQL, RabbitMQ, and Redis...");
+      await Promise.all([
+         mongoConnection.connect(),
+         postgresConnection.testConnection(),
+         amqpConnection.connect(),
+         redisConnection.connect(),
+      ]);
 
       logger.info("All connections initialized successfully");
 
