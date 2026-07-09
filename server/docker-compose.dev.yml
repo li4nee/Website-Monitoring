@@ -1,0 +1,21 @@
+# Local development override: hot-reload via nodemon/ts-node with source
+# bind-mounted in. Use with the base file:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env up --build
+services:
+  server-api:
+    build:
+      target: dev
+    environment:
+      NODE_ENV: development
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  consumer:
+    build:
+      target: dev
+    environment:
+      NODE_ENV: development
+    volumes:
+      - .:/app
+      - /app/node_modules

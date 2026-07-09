@@ -1,15 +1,34 @@
-FROM node:24-alpine
+# syntax=docker/dockerfile:1
 
+FROM node:24-alpine AS base
 WORKDIR /app
-
 COPY package*.json ./
 
-RUN npm install
-
-COPY . .
-
+# ---- dev: full deps incl. nodemon/ts-node, source mounted at runtime ----
+FROM base AS dev
+RUN npm ci
 RUN mkdir -p logs
-
 EXPOSE 4000
+CMD ["npm", "run", "dev"]
 
-CMD [ "npm", "run", "dev" ]
+# ---- build: compile TypeScript to dist/ ----
+FROM base AS build
+RUN npm ci
+COPY tsconfig.json ./
+COPY src ./src
+RUN npm run build
+
+# ---- production: prod deps only + compiled output, non-root ----
+FROM node:24-alpine AS production
+RUN apk add --no-cache curl
+WORKDIR /app
+ENV NODE_ENV=production
+COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+COPY --from=build /app/dist ./dist
+RUN mkdir -p logs \
+    && addgroup -S app && adduser -S app -G app \
+    && chown -R app:app /app
+USER app
+EXPOSE 4000
+CMD ["node", "dist/index.js"]

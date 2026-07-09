@@ -114,9 +114,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - .:/app
-      - /app/node_modules
     healthcheck:
       # Runs inside the container's own network namespace, so this stays on
       # the container's internal port 4000 regardless of the host-side mapping above.
@@ -143,9 +140,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - .:/app
-      - /app/node_modules
 
 volumes:
   postgres_data:
