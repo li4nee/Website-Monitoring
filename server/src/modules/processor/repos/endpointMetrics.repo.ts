@@ -345,4 +345,46 @@ export class PgEndPointMetricsRepo extends EndPointMetricsBaseRepo<EndpointMetri
          throw error;
       }
    }
+
+   async getDailyTimeSeries(clientId: string, startTime?: Date, endTime?: Date, serviceName?: string): Promise<TimeSeriesBucket[]> {
+      try {
+         if (!startTime) {
+            startTime = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+         }
+
+         const dayBucket = sql<Date>`date_trunc('day', time_bucket)`;
+
+         let query = PostgresDB.selectFrom("endpoint_metrics")
+            .select([
+               dayBucket.as("time_bucket"),
+               sql<number>`SUM(total_hits)`.as("total_hits"),
+               sql<number>`SUM(error_hits)`.as("error_hits"),
+               sql<number>`COALESCE(SUM(total_latency)::float / NULLIF(SUM(total_hits), 0), 0)`.as("avg_latency"),
+            ])
+            .where("client_id", "=", clientId)
+            .where("time_bucket", ">=", startTime)
+            .groupBy(dayBucket)
+            .orderBy(dayBucket, "asc");
+
+         if (endTime) {
+            query = query.where("time_bucket", "<=", endTime);
+         }
+
+         if (serviceName) {
+            query = query.where("service_name", "=", serviceName);
+         }
+
+         const rows = await query.execute();
+
+         return rows.map((row) => ({
+            time_bucket: row.time_bucket,
+            total_hits: Number(row.total_hits),
+            error_hits: Number(row.error_hits),
+            avg_latency: parseFloat(Number(row.avg_latency).toFixed(2)),
+         }));
+      } catch (error) {
+         logger.error("Error getting daily time series", { error, clientId });
+         throw error;
+      }
+   }
 }

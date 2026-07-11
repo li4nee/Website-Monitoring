@@ -129,13 +129,45 @@ export class MongoApiHitsRepo extends ApiHitsBaseRepo<ApiHitsWithId> {
       }
    }
 
+   /**
+    * Groups matched apiHits into fixed-width buckets aligned to epoch time
+    * (not calendar boundaries), so any bucketMs works — 1 minute, 5 minutes,
+    * 1 hour, 1 day — without needing MongoDB 5's $dateTrunc.
+    */
+   private async aggregateBucketedTimeSeries(matchStage: Record<string, any>, bucketMs: number): Promise<TimeSeriesBucket[]> {
+      const results = await this.model.aggregate([
+         { $match: matchStage },
+         {
+            $group: {
+               _id: {
+                  $toDate: {
+                     $subtract: [{ $toLong: "$timestamp" }, { $mod: [{ $toLong: "$timestamp" }, bucketMs] }],
+                  },
+               },
+               total_hits: { $sum: 1 },
+               error_hits: { $sum: { $cond: [{ $gte: ["$statusCode", 400] }, 1, 0] } },
+               total_latency: { $sum: "$latencyInMs" },
+            },
+         },
+         { $sort: { _id: 1 } },
+      ]);
+
+      return results.map((r) => ({
+         time_bucket: r._id,
+         total_hits: r.total_hits,
+         error_hits: r.error_hits,
+         avg_latency: r.total_hits > 0 ? parseFloat((r.total_latency / r.total_hits).toFixed(2)) : 0,
+      }));
+   }
+
    async getEndpointTimeSeries(
       clientId: string,
       serviceName: string,
       endpoint: string,
       method: string,
-      startTime?: Date,
-      endTime?: Date,
+      startTime: Date | undefined,
+      endTime: Date | undefined,
+      bucketMs: number,
    ): Promise<TimeSeriesBucket[]> {
       try {
          const matchStage: Record<string, any> = {
@@ -150,32 +182,34 @@ export class MongoApiHitsRepo extends ApiHitsBaseRepo<ApiHitsWithId> {
          if (endTime) timeFilter.$lte = endTime;
          if (Object.keys(timeFilter).length > 0) matchStage.timestamp = timeFilter;
 
-         const results = await this.model.aggregate([
-            { $match: matchStage },
-            {
-               $group: {
-                  _id: {
-                     $dateToString: {
-                        format: "%Y-%m-%dT%H:00:00.000Z",
-                        date: "$timestamp",
-                     },
-                  },
-                  total_hits: { $sum: 1 },
-                  error_hits: { $sum: { $cond: [{ $gte: ["$statusCode", 400] }, 1, 0] } },
-                  total_latency: { $sum: "$latencyInMs" },
-               },
-            },
-            { $sort: { _id: 1 } },
-         ]);
-
-         return results.map((r) => ({
-            time_bucket: new Date(r._id),
-            total_hits: r.total_hits,
-            error_hits: r.error_hits,
-            avg_latency: r.total_hits > 0 ? parseFloat((r.total_latency / r.total_hits).toFixed(2)) : 0,
-         }));
+         return await this.aggregateBucketedTimeSeries(matchStage, bucketMs);
       } catch (error) {
          logger.error(`Failed to get endpoint time series: ${error instanceof Error ? error.message : "Unknown error"}`);
+         throw error;
+      }
+   }
+
+   async getFineTimeSeries(
+      clientId: string,
+      bucketMs: number,
+      startTime?: Date,
+      endTime?: Date,
+      serviceName?: string,
+   ): Promise<TimeSeriesBucket[]> {
+      try {
+         const matchStage: Record<string, any> = {
+            clientId: new Types.ObjectId(clientId),
+         };
+         if (serviceName) matchStage.serviceName = serviceName;
+
+         const timeFilter: Record<string, Date> = {};
+         if (startTime) timeFilter.$gte = startTime;
+         if (endTime) timeFilter.$lte = endTime;
+         if (Object.keys(timeFilter).length > 0) matchStage.timestamp = timeFilter;
+
+         return await this.aggregateBucketedTimeSeries(matchStage, bucketMs);
+      } catch (error) {
+         logger.error(`Failed to get fine time series: ${error instanceof Error ? error.message : "Unknown error"}`);
          throw error;
       }
    }

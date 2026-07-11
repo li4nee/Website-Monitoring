@@ -136,11 +136,40 @@ export class AnalyticsService implements IAnalyticsService {
       }
    }
 
+   /** Picks time-series source/resolution by range. */
+   private pickGranularity(startTime: Date, endTime: Date): { bucketMs: number; source: "mongo-fine" | "postgres-hourly" | "postgres-daily" } {
+      const HOUR_MS = 60 * 60 * 1000;
+      const DAY_MS = 24 * HOUR_MS;
+      const spanMs = Math.max(0, endTime.getTime() - startTime.getTime());
+
+      if (spanMs <= 3 * HOUR_MS) {
+         const MINUTE_MS = 60 * 1000;
+         // Aim for ~60 points across the range, snapped to a whole minute.
+         const bucketMs = Math.max(MINUTE_MS, Math.round(spanMs / 60 / MINUTE_MS) * MINUTE_MS);
+         return { bucketMs, source: "mongo-fine" };
+      }
+      if (spanMs > 10 * DAY_MS) {
+         return { bucketMs: DAY_MS, source: "postgres-daily" };
+      }
+      return { bucketMs: HOUR_MS, source: "postgres-hourly" };
+   }
+
    async getTimeSeries(user: UserInsideAuthorizedRequest, query: AnalyticsTimeSeriesQueryDTOType): Promise<TimeSeriesBucket[]> {
       try {
          AuthorizationUtils.canViewAnalytics(user, query.clientId);
          logger.info(`[AnalyticsService] Fetching time series for clientId: ${query.clientId}`);
-         return await this.endPointMetricsRepo.getTimeSeries(query.clientId, query.startTime, query.endTime, query.serviceName);
+
+         const endTime = query.endTime ?? new Date();
+         const startTime = query.startTime ?? new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
+         const { bucketMs, source } = this.pickGranularity(startTime, endTime);
+
+         if (source === "mongo-fine") {
+            return await this.apiHitsRepo.getFineTimeSeries(query.clientId, bucketMs, startTime, endTime, query.serviceName);
+         }
+         if (source === "postgres-daily") {
+            return await this.endPointMetricsRepo.getDailyTimeSeries(query.clientId, startTime, endTime, query.serviceName);
+         }
+         return await this.endPointMetricsRepo.getTimeSeries(query.clientId, startTime, endTime, query.serviceName);
       } catch (error) {
          logger.error("[AnalyticsService] Error fetching time series", { error, query });
          throw error;
@@ -167,13 +196,19 @@ export class AnalyticsService implements IAnalyticsService {
          logger.info(
             `[AnalyticsService] Fetching endpoint drilldown for clientId: ${query.clientId} endpoint: ${query.endpoint}`,
          );
+
+         const endTime = query.endTime ?? new Date();
+         const startTime = query.startTime ?? new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
+         const { bucketMs } = this.pickGranularity(startTime, endTime);
+
          return await this.apiHitsRepo.getEndpointTimeSeries(
             query.clientId,
             query.serviceName,
             query.endpoint,
             query.method,
-            query.startTime,
-            query.endTime,
+            startTime,
+            endTime,
+            bucketMs,
          );
       } catch (error) {
          logger.error("[AnalyticsService] Error fetching endpoint drilldown", { error, query });
