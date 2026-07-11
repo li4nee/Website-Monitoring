@@ -23,8 +23,19 @@ export abstract class ApiHitsBaseRepo<T> {
       serviceName: string,
       endpoint: string,
       method: string,
+      startTime: Date | undefined,
+      endTime: Date | undefined,
+      bucketMs: number,
+   ): Promise<TimeSeriesBucket[]>;
+   /** Buckets raw apiHits directly (not the hourly Postgres rollup) at an
+    * arbitrary bucketMs — used for short time ranges where the rollup's fixed
+    * hourly grain would produce only one or two flat points. */
+   abstract getFineTimeSeries(
+      clientId: string,
+      bucketMs: number,
       startTime?: Date,
       endTime?: Date,
+      serviceName?: string,
    ): Promise<TimeSeriesBucket[]>;
    abstract getDistinctServices(clientId: string): Promise<string[]>;
    abstract streamRawLogsAsCsv(query: ExportQueryDTOType, onRow: (csvRow: string) => void): Promise<void>;

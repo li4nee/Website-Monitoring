@@ -25,9 +25,12 @@ export const validateBody = (schema: z.ZodType<any>) => async (req: Request, res
 export const validateQuery = (schema: z.ZodType<any>) => async (req: Request, res: Response, next: NextFunction) => {
    try {
       const parsed = await schema.parseAsync(req.query);
-      // Express 5 exposes req.query as a getter-only accessor, so it can't be
-      // reassigned outright — mutate the existing object in place instead.
-      Object.assign(req.query, parsed);
+      Object.defineProperty(req, "query", {
+         value: parsed,
+         writable: true,
+         configurable: true,
+         enumerable: true,
+      });
       next();
    } catch (error: any) {
       const formattedErrors =
