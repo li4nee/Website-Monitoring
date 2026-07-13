@@ -15,4 +15,12 @@ export interface IAuthService {
    isSuperAdmin(id: string): Promise<boolean>;
 
    changePassword(userId: string, data: ChangePasswordDTOType): Promise<void>;
+
+   resendVerificationEmail(email: string): Promise<void>;
+
+   verifyEmail(token: string): Promise<void>;
+
+   forgotPassword(email: string): Promise<void>;
+
+   resetPassword(token: string, newPassword: string): Promise<void>;
 }

@@ -35,7 +35,7 @@ class ClientDependeniesContainer {
          userRepo: new MongoUserRepo(),
       };
       const services = {
-         clientService: new ClientService(repositories.clientRepo, repositories.userRepo),
+         clientService: new ClientService(repositories.clientRepo, repositories.userRepo, repositories.apiKeyRepo),
          apiKeyService: new ApiKeyService(repositories.apiKeyRepo, repositories.clientRepo),
       };
       const controllers = {

@@ -8,7 +8,8 @@ const { apiKeyService } = ClientDependeniesContainer.init().services;
 
 /**
  * Middleware to validate API key from the request header.
- * TODO: instead of database use REDIS .
+ * Backed by ApiKeyCache (Redis, short TTL) — see apiKey.service.ts's
+ * getClientFromApiKey — since this runs on every single /ingest request.
  */
 const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next: NextFunction) => {
    try {
@@ -25,7 +26,7 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
       const result = await apiKeyService.getClientFromApiKey(apiKey);
 
       const client = result?.client;
-      const apiKeyDoc = result?.apiKeyDoc;
+      const apiKeyDoc = result?.apiKey;
 
       if (!apiKeyDoc) {
          logger.warn("[ValidateApiKey] Invalid API key provided", {
@@ -55,7 +56,7 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
          throw new PermissionNotGranted("API key belongs to an inactive client");
       }
 
-      if (!apiKeyDoc?.permissions?.writeAccess) {
+      if (!apiKeyDoc.permissions.writeAccess) {
          logger.warn("[ValidateApiKey] API key does not have write access", {
             endpoint: req.originalUrl,
             method: req.method,
@@ -66,7 +67,7 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
       }
 
       req.client = {
-         id: client._id.toString(),
+         id: client.id,
          name: client.name,
          slug: client.slug,
          ip: req.ip,
@@ -74,12 +75,12 @@ const validateApiKey = async (req: ClientAuthorizedRequest, _res: Response, next
       };
 
       req.apiKey = {
-         id: apiKeyDoc._id.toString(),
+         id: apiKeyDoc.id,
          apiKeyId: apiKeyDoc.keyId,
          name: apiKeyDoc.name,
          permissions: {
-            writeAccess: apiKeyDoc.permissions?.writeAccess ?? false,
-            readAccess: apiKeyDoc.permissions?.readAccess ?? false,
+            writeAccess: apiKeyDoc.permissions.writeAccess,
+            readAccess: apiKeyDoc.permissions.readAccess,
          },
       };
 
