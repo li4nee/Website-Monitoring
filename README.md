@@ -1,17 +1,40 @@
 # ServerStats — API Monitoring & Alerting Backend
 
-A multi-tenant backend that ingests API telemetry (hits, latency, status codes) from client
-applications, aggregates it for analytics, and evaluates alert rules against it in real time.
-Built as a small set of independently deployable services around a message queue, so a burst of
-ingest traffic never blocks the write path or the dashboard.
+ServerStats tells you what your APIs are doing right now, and tells you fast when they aren't
+doing it well. Drop a per-client API key into your app, and every request you send through it —
+hits, latency, status codes — flows into a live dashboard and a rule engine that notifies your
+team the moment something looks wrong. It's multi-tenant from the ground up, so one deployment
+can serve any number of client applications, each with its own users, API keys, and alert rules.
+
+The backend itself is a small set of independently deployable services connected by a message
+queue, not a single process doing everything inline. That split means a traffic spike on the
+ingest path never slows down the dashboard, and a slow database write never makes a client's API
+call wait on us.
+
+## What it does
+
+- **Ingest at the edge, process in the background.** Every request your app makes is logged in
+  milliseconds — the write path only validates and queues, so ingest latency stays flat even
+  under bursty load.
+- **Real dashboards, not just raw logs.** Overview stats, top endpoints by hits/errors/latency,
+  time-series trends, and full-text log drilldown, all backed by pre-aggregated Postgres rollups
+  so the UI stays fast as data grows.
+- **Alerting that actually reaches someone.** Set a threshold and a cooldown, and get notified
+  over Slack, Discord, email, or a generic webhook the moment a rule fires — with an incident feed
+  so you can see what happened and when.
+- **Multi-tenant from day one.** Every client is fully isolated — its own users, API keys, alert
+  rules, and data retention policy — behind one shared deployment.
+- **Built to survive bad days.** Retry with backoff, dead-letter queues for poison messages, and
+  circuit breakers around every external dependency mean a struggling database degrades the
+  system gracefully instead of taking it down with it.
 
 ## How it works
 
-A client application sends one event per API call it wants monitored, using a per-client API key.
-That write is decoupled from processing: the HTTP layer only validates and publishes to RabbitMQ,
-then returns. A separate consumer process does the actual persistence, so ingest stays fast even
-if MongoDB or Postgres is briefly slow. A third process polls for alert rules that have crossed
-their threshold and dispatches notifications.
+A client application sends one event per API call it wants monitored, using its API key. That
+write is decoupled from processing: the HTTP layer only validates and publishes to RabbitMQ, then
+returns immediately. A separate consumer process handles the actual persistence, so ingest stays
+fast even if MongoDB or Postgres is briefly slow. A third process continuously evaluates alert
+rules against fresh metrics and dispatches notifications the moment one crosses its threshold.
 
 ![Architecture diagram](docs/architecture.svg)
 
@@ -21,26 +44,28 @@ their threshold and dispatches notifications.
 ### Request/event flow
 
 1. **Ingest** — a client POSTs to `/api/v1/ingest` with an `x-api-key` header. `validateApiKey`
-   resolves the key to a client + its write/read permissions, `rateLimiter` throttles per key via
+   resolves the key to a client and its write/read permissions, `rateLimiter` throttles per key via
    Redis, and the payload is Zod-validated. The route only publishes an `API_HITS` event to
    RabbitMQ (`eventProducer.publishApiHits`) and returns — it never touches Mongo/Postgres itself.
-2. **Consume** — `EventConsumer` (runs in the separate `consumer` container/process) pulls events
-   off the queue with `noAck: false` and a configurable prefetch. Each message is deduped through
-   a Redis-backed idempotency store, then:
+2. **Consume** — `EventConsumer` (running in the separate `consumer` container/process) pulls
+   events off the queue with `noAck: false` and a configurable prefetch. Each message is deduped
+   through a Redis-backed idempotency store, then:
    - the raw hit is written to MongoDB (`apiHits`, TTL set per-client from a cached retention
      setting — see `ClientRetentionCache`),
    - an hourly bucket in Postgres' `endpoint_metrics` is upserted (total hits, error hits, min/max/
      total latency) with a bounded retry.
-   Failures are classified as retryable/non-retryable; retryable ones are re-queued with backoff,
-   everything else (or exhausted retries) goes to the `_dl` dead-letter queue. A circuit breaker
-   trips on repeated failures so the consumer backs off instead of hammering a struggling DB.
-3. **Analyze** — the dashboard/API reads aggregated stats from Postgres (`overview`, `top/hits`,
+
+   Failures are classified as retryable or non-retryable; retryable ones are re-queued with
+   backoff, everything else (or exhausted retries) goes to the `_dl` dead-letter queue. A circuit
+   breaker trips on repeated failures so the consumer backs off instead of hammering a struggling
+   database.
+3. **Analyze** — the dashboard reads aggregated stats from Postgres (`overview`, `top/hits`,
    `top/errors`, `top/latency`, `timeseries`) and raw events from Mongo (`logs`, `endpoint`
    drilldown, CSV `export`).
 4. **Alert** — `AlertingWorker` polls on an interval, evaluates each client's alert rules against
-   recent metrics, and on a rule firing (outside its cooldown) dispatches through whichever
-   channel(s) the rule is configured for — Slack, Discord, email, or a generic webhook — and
-   records a fire log entry in Mongo for the incident feed.
+   recent metrics, and — if a rule fires outside its cooldown — dispatches through whichever
+   channel(s) it's configured for (Slack, Discord, email, or a generic webhook) and records a fire
+   log entry in Mongo for the incident feed.
 
 ## Multi-tenancy & auth
 
@@ -48,7 +73,7 @@ Everything is scoped to a **client** (tenant). A `super_admin` onboards clients 
 `client_admin`; client admins can then create `client_user` accounts with a granular permission
 set (`canCreateApiKeys`, `canManageUsers`, `canViewRawLogs`, `canViewAnalytics`,
 `canManageSettings`, `canExportData`). Dashboard auth is a JWT in an httpOnly cookie; ingest auth
-is a per-client API key with independent read/write flags, never the JWT.
+is a per-client API key with independent read/write flags, and the two are never interchangeable.
 
 ## Tech stack
 
@@ -83,8 +108,9 @@ src/
     config/                      # env schema + validation (fails loudly on boot, not at first use)
 ```
 
-Each module follows the same shape: `routes → controllers → services → repos`, wired together by
-a per-module `*.dependency.ts` container (manual DI, no framework).
+Every module follows the same shape — `routes → controllers → services → repos` — wired together
+by a per-module `*.dependency.ts` container. It's manual dependency injection, no framework, which
+keeps each layer easy to test in isolation.
 
 ## Running it
 
@@ -94,7 +120,7 @@ make up-dev      # docker compose -f docker-compose.yml -f docker-compose.dev.ym
 make down-dev
 ```
 
-**Production** (multi-stage build — compiles TypeScript, installs only prod deps, runs the
+**Production** (multi-stage build — compiles TypeScript, installs only prod dependencies, runs the
 compiled `dist/` as a non-root user, no source bind-mounts):
 ```bash
 make up          # build + start detached
@@ -106,7 +132,7 @@ make down
 Both flows bring up Postgres, MongoDB, RabbitMQ, Redis, pgAdmin, `server-api`, and `consumer` via
 `docker-compose.yml`. The alerting worker and DLQ consumer (`start:alerting`, `start:dlq`) aren't
 wired into compose yet — run them with `npm run dev:alerting` / `dev:dlq` locally, or add a
-service block per the existing `consumer` pattern when ready to deploy them.
+service block per the existing `consumer` pattern when you're ready to deploy them.
 
 ### npm scripts
 
@@ -124,20 +150,20 @@ service block per the existing `consumer` pattern when ready to deploy them.
 All env vars are parsed and validated once at boot (`shared/config/global.config.ts`) — a
 malformed value fails loudly at startup instead of surfacing as a runtime bug later. When
 `NODE_ENV=production`, `JWT_SECRET`, `POSTGRES_PASSWORD`, and `API_KEY_HMAC_SECRET` are required
-to be real values (no dev fallback). See `.env` for the full list; the main groups are:
+to be real values, with no dev fallback. See `.env` for the full list; the main groups are:
 
 - **Core**: `NODE_ENV`, `PORT`, `CORS_ALLOWED_ORIGINS`
 - **Postgres / Mongo / Redis / RabbitMQ**: connection strings and credentials
 - **Consumer tuning**: prefetch count, upsert retry attempts, idempotency TTL, poison-message
   failure threshold
 - **Resilience**: retry strategy (max retries, base/max delay, jitter) and circuit breaker
-  (failure threshold, cooldown, half-open probe count) — shared by the consumer's RabbitMQ and DB
-  calls
-- **Rate limiting**: window + max requests, separate limits for ingest vs auth endpoints
+  (failure threshold, cooldown, half-open probe count), shared by the consumer's RabbitMQ and
+  database calls
+- **Rate limiting**: window + max requests, with separate limits for ingest vs auth endpoints
 
 ## Health check
 
 `GET /health` checks Mongo, Postgres, RabbitMQ, and Redis in parallel and returns `503` if any of
-the first three are down (Redis failing is non-fatal — rate limiting fails open by design). In
-production the response omits per-connection detail; non-production environments get the full
-breakdown.
+the first three are down — Redis failing is non-fatal, since rate limiting is designed to fail
+open. In production the response omits per-connection detail; non-production environments get the
+full breakdown.
