@@ -17,6 +17,7 @@ import { ApiKeyWithId } from "../../../shared/infra/db/mongo/models/apiKeys.mode
 import { ClientWithId } from "../../../shared/infra/db/mongo/models/client.model";
 import { globalConfig } from "../../../shared/config/global.config";
 import { AuditLogger } from "../../../shared/utils/auditLogger.utils";
+import { ApiKeyCache, ApiKeyLookupResult } from "../../../shared/infra/cache/apiKeyCache";
 
 export class ApiKeyService {
    protected apiKeyRepo: ApiKeyBaseRepo<ApiKeyWithId>;
@@ -168,7 +169,13 @@ export class ApiKeyService {
          if (apiKey.clientId.toString() !== clientId)
             throw new PermissionNotGranted("This API key does not belong to this client.");
 
+         // Fetched before delete so we have the hash to evict from cache — revoke
+         // must not leave a cached copy of the key working until TTL expiry.
+         const keyValueHash = await this.apiKeyRepo.findKeyValueById(apiKeyId);
+
          await this.apiKeyRepo.delete(apiKeyId);
+         if (keyValueHash) void ApiKeyCache.invalidate(keyValueHash);
+
          logger.info(`API key revoked: ${apiKeyId} for clientId: ${clientId} by user: ${requestedBy.id}`);
          AuditLogger.log({
             action: "api_key.revoked",
@@ -185,12 +192,12 @@ export class ApiKeyService {
       }
    }
 
-   async getClientFromApiKey(apiKeyValue: string): Promise<{
-      client: { _id: Types.ObjectId; name: string; slug: string; isActive: boolean };
-      apiKeyDoc: ApiKeyWithId;
-   }> {
+   async getClientFromApiKey(apiKeyValue: string): Promise<ApiKeyLookupResult> {
+      const hashedKeyValue = this.hashApiKey(apiKeyValue);
+
       try {
-         const hashedKeyValue = this.hashApiKey(apiKeyValue);
+         const cached = await ApiKeyCache.get(hashedKeyValue);
+         if (cached) return cached;
 
          const apiKeyDoc = await this.apiKeyRepo.findByKeyValue(hashedKeyValue, true, true);
 
@@ -208,14 +215,28 @@ export class ApiKeyService {
             throw new ResourceNotFoundError("Client not found");
          }
 
-         const safeClient: { _id: Types.ObjectId; name: string; slug: string; isActive: boolean } = {
-            _id: client._id,
-            name: client.name,
-            slug: client.slug,
-            isActive: client.isActive,
+         const result: ApiKeyLookupResult = {
+            client: {
+               id: client._id.toString(),
+               name: client.name,
+               slug: client.slug,
+               isActive: client.isActive,
+            },
+            apiKey: {
+               id: apiKeyDoc._id.toString(),
+               keyId: apiKeyDoc.keyId,
+               name: apiKeyDoc.name,
+               permissions: {
+                  writeAccess: apiKeyDoc.permissions?.writeAccess ?? false,
+                  readAccess: apiKeyDoc.permissions?.readAccess ?? false,
+               },
+            },
          };
 
-         return { client: safeClient, apiKeyDoc };
+         // Only successful lookups are cached — see ApiKeyCache's doc comment on why.
+         void ApiKeyCache.set(hashedKeyValue, result);
+
+         return result;
       } catch (error) {
          logger.error("Error retrieving client from API key", { error });
          throw error;

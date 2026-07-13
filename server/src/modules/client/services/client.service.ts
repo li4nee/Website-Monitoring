@@ -14,26 +14,31 @@ import { ClientBaseRepo } from "../repos/clientBase.repo";
 import { USER_ROLE, UserInsideAuthorizedRequest } from "../../../shared/typings/auth.typings";
 import { AuthorizationUtils } from "../../../shared/utils/authorization.utils";
 import { CreateClientUserDTOType } from "../dtos/createClientUser.dto";
-import { Client } from "../../../shared/infra/db/mongo/models/client.model";
+import { Client, ClientWithId } from "../../../shared/infra/db/mongo/models/client.model";
 import { User, UserWithId } from "../../../shared/infra/db/mongo/models/user.model";
 import { AuditLogger } from "../../../shared/utils/auditLogger.utils";
+import { issueAndSendVerificationEmail } from "../../../shared/utils/emailVerification.utils";
+import { ApiKeyBaseRepo } from "../repos/apiKeyBase.repo";
+import { ApiKeyWithId } from "../../../shared/infra/db/mongo/models/apiKeys.model";
+import { ApiKeyCache } from "../../../shared/infra/cache/apiKeyCache";
+import { SignupDTOType } from "../dtos/signup.dto";
 export class ClientService {
    protected clientRepo: ClientBaseRepo<Client>;
-   // protected apiKeyRepo: ApiKeyBaseRepo<ApiKeyWithId>;
+   protected apiKeyRepo: ApiKeyBaseRepo<ApiKeyWithId>;
    protected userRepo: UserBaseRepo<UserWithId>;
 
-   constructor(clientRepo: ClientBaseRepo<Client>, userRepo: UserBaseRepo<UserWithId>) {
+   constructor(clientRepo: ClientBaseRepo<Client>, userRepo: UserBaseRepo<UserWithId>, apiKeyRepo: ApiKeyBaseRepo<ApiKeyWithId>) {
       if (!clientRepo) {
          throw new ResourceNotInitializedError("Client repository must be provided to ClientService");
       }
-      // if (!apiKeyRepo) {
-      //    throw new ResourceNotInitializedError("API Key repository must be provided to ClientService");
-      // }
+      if (!apiKeyRepo) {
+         throw new ResourceNotInitializedError("API Key repository must be provided to ClientService");
+      }
       if (!userRepo) {
          throw new ResourceNotInitializedError("User repository must be provided to ClientService");
       }
       this.clientRepo = clientRepo;
-      // this.apiKeyRepo = apiKeyRepo;
+      this.apiKeyRepo = apiKeyRepo;
       this.userRepo = userRepo;
    }
 
@@ -93,10 +98,9 @@ export class ClientService {
             createdBy: new Types.ObjectId(createdBy),
          });
          logger.info(`Client created successfully with slug : ${newClient.slug} by user: ${createdBy}`);
-         // createClient is only ever reachable via a super_admin-only route (see clientAdmin.route.ts).
-         // `Client` (the repo's declared generic here) doesn't expose `_id` even
-         // though the underlying document has one — slug is a stable, unique,
-         // type-safe identifier to correlate this entry with instead.
+         // This method is only reached through a super_admin-only route (see clientAdmin.route.ts).
+         // The repo's `Client` type does not expose `_id`, even though the underlying
+         // document has one, so we use the slug here as a stable, unique, type-safe identifier.
          AuditLogger.log({
             action: "client.created",
             actorId: createdBy,
@@ -108,6 +112,76 @@ export class ClientService {
          return newClient;
       } catch (error) {
          logger.error("Error creating client", { error, clientData, createdBy });
+         throw error;
+      }
+   }
+
+   /**
+    * Public signup that creates a new client and its first user.
+    */
+   async signup(data: SignupDTOType): Promise<{ client: Client; user: Omit<User, "password" | "trash" | "isActive"> }> {
+      try {
+         const slug = this.generateSlug(data.companyName);
+
+         const existingClient = await this.clientRepo.findBySlug(slug, true);
+         if (existingClient) {
+            throw new InvalidInputError("A company with this name is already registered. Please choose a different name.");
+         }
+
+         await this.checkIfClientUserExistsAndThrowError(data.username, data.email);
+
+         const newUserId = new Types.ObjectId();
+
+         const newClient = await this.clientRepo.create({
+            name: data.companyName,
+            email: data.email,
+            website: data.companyWebsite || "",
+            slug,
+            createdBy: newUserId,
+         });
+
+         const clientId = (newClient as unknown as ClientWithId)._id;
+
+         try {
+            const newUser = await this.userRepo.create({
+               _id: newUserId,
+               username: data.username,
+               email: data.email,
+               password: data.password,
+               role: USER_ROLE.CLIENT_ADMIN,
+               clientId,
+               permissions: {
+                  canCreateApiKeys: true,
+                  canManageUsers: true,
+                  canViewRawLogs: true,
+                  canViewAnalytics: true,
+                  canManageSettings: true,
+                  canExportData: true,
+               },
+            } as Partial<User> & { _id: Types.ObjectId });
+
+            void issueAndSendVerificationEmail(newUser);
+
+            logger.info(`New company signed up: ${newClient.slug}, admin: ${newUser.username}`);
+            AuditLogger.log({
+               action: "client.signup",
+               actorId: newUserId.toString(),
+               actorRole: USER_ROLE.CLIENT_ADMIN,
+               clientId: clientId.toString(),
+               targetType: "client",
+               targetId: newClient.slug,
+               metadata: { name: newClient.name, slug: newClient.slug },
+            });
+
+            return { client: newClient, user: this.formatUserResponseWithoutPassword(newUser) };
+         } catch (userCreateError) {
+            // Roll back the orphaned client if the admin user couldn't be created
+            // (e.g. an email/username collision that slipped past the check above).
+            await this.clientRepo.delete(clientId.toString());
+            throw userCreateError;
+         }
+      } catch (error) {
+         logger.error("Error during company signup", { error, companyName: data.companyName, email: data.email });
          throw error;
       }
    }
@@ -158,6 +232,8 @@ export class ClientService {
          logger.info(
             `Client user created successfully with username : ${newUser.username} for clientId: ${clientId} by user: ${createdBy.id}`,
          );
+
+         void issueAndSendVerificationEmail(newUser);
          AuditLogger.log({
             action: "user.created",
             actorId: createdBy.id,
@@ -334,6 +410,14 @@ export class ClientService {
          this.requireSuperAdmin(requestedBy);
          const updated = await this.clientRepo.update(clientId, { isActive } as any);
          if (!updated) throw new ResourceNotFoundError("Client not found.");
+
+         if (!isActive) {
+            // Cached API-key lookups embed client.isActive — without this, a
+            // deactivated client's keys would keep validating until the cache
+            // TTL naturally expires instead of stopping immediately.
+            void this.invalidateApiKeyCacheForClient(clientId);
+         }
+
          logger.info(`Client ${isActive ? "activated" : "deactivated"}: ${clientId} by user: ${requestedBy.id}`);
          AuditLogger.log({
             action: isActive ? "client.activated" : "client.deactivated",
@@ -347,6 +431,15 @@ export class ClientService {
       } catch (error) {
          logger.error("Error setting client active status", { error, clientId, isActive });
          throw error;
+      }
+   }
+
+   private async invalidateApiKeyCacheForClient(clientId: string): Promise<void> {
+      try {
+         const keyValueHashes = await this.apiKeyRepo.findKeyValuesByClientId(clientId, true);
+         await Promise.all(keyValueHashes.map((hash) => ApiKeyCache.invalidate(hash)));
+      } catch (error) {
+         logger.error("Error invalidating API key cache for client", { error, clientId });
       }
    }
 }

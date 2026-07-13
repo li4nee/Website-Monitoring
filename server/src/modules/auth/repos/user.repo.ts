@@ -86,7 +86,9 @@ export class MongoUserRepo extends UserBaseRepo<UserWithId> {
          .find(filter)
          .sort({ _id: -1 })
          .limit(safeLimit + 1)
-         .select("-password -__v");
+         .select(
+            "-password -__v -emailVerificationTokenHash -emailVerificationTokenExpiresAt -passwordResetTokenHash -passwordResetTokenExpiresAt",
+         );
 
       let nextCursor: string | undefined;
       let data: UserWithId[];

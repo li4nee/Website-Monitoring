@@ -19,8 +19,7 @@
       "dev:dlq": "nodemon --watch src --ext ts --exec ts-node src/modules/processor/dlqConsumerStartup.ts",
       "migrate": "ts-node scripts/migrate.ts up",
       "migrate:down": "ts-node scripts/migrate.ts down",
-      "sync-indexes": "ts-node scripts/syncMongoIndexes.ts",
-      "backfill-api-hit-expiry": "ts-node scripts/backfillApiHitExpiry.ts"
+      "sync-indexes": "ts-node scripts/syncMongoIndexes.ts"
    },
    "keywords": [],
    "author": "",
@@ -41,7 +40,6 @@
       "kysely": "^0.28.17",
       "mongoose": "^9.2.1",
       "ms": "^2.1.3",
-      "nodemailer": "^8.0.7",
       "pg": "^8.18.0",
       "rate-limit-redis": "^5.0.0",
       "uuid": "^13.0.0",
@@ -57,7 +55,6 @@
       "@types/express": "^5.0.6",
       "@types/jsonwebtoken": "^9.0.10",
       "@types/node": "^25.3.0",
-      "@types/nodemailer": "^8.0.0",
       "@types/pg": "^8.16.0",
       "eslint": "^10.6.0",
       "eslint-config-prettier": "^10.1.8",

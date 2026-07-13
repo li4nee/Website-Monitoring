@@ -141,6 +141,22 @@ services:
       redis:
         condition: service_healthy
 
+  alerting-worker:
+    container_name: server-monitoring-alerting-worker
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    command: ["node", "dist/modules/alerting/worker/alertingWorkerStartup.js"]
+    env_file: .env
+    networks:
+      - website-monitoring-network
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+
 volumes:
   postgres_data:
     driver: local

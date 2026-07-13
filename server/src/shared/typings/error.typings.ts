@@ -21,6 +21,7 @@ export enum ErrorCode {
    CORS_ERROR = "CORS_ERROR",
    ENVIRONMENT_VARIABLE_ERROR = "ENVIRONMENT_VARIABLE_ERROR",
    ALERT_EVALUATION_FAILED = "ALERT_EVALUATION_FAILED",
+   EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED",
 }
 
 export enum ErrorHttpStatusCode {
@@ -156,5 +157,15 @@ export class AlertEvaluationError extends CustomError {
    constructor(alertId: string, message = "Alert evaluation failed") {
       super(message, ErrorHttpStatusCode.INTERNAL_SERVER_ERROR, ErrorCode.ALERT_EVALUATION_FAILED);
       this.alertId = alertId;
+   }
+}
+
+/**
+ * Error caused by attempting to log in before verifying the account's email address.
+ * @extends CustomError
+ */
+export class EmailNotVerifiedError extends CustomError {
+   constructor(message = "Please verify your email address before logging in.") {
+      super(message, ErrorHttpStatusCode.PERMISSION_NOT_GRANTED, ErrorCode.EMAIL_NOT_VERIFIED);
    }
 }

@@ -1,5 +1,5 @@
 import { AuthorizedRequest } from "../../../shared/typings/auth.typings";
-import type { Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { InvalidInputError, ResourceNotInitializedError } from "../../../shared/typings/error.typings";
 import { ResponseFormatter } from "../../../shared/utils/responseFormatter.utils";
 import { IClientService } from "../contracts/IClientService.contract";
@@ -35,6 +35,20 @@ export class ClientController {
          // This extra checking dispite middleware to ensure that no way other user can use this endpoint.
          const client = await this.clientService.createClient(req.body, req.user!.id);
          return res.status(201).json(ResponseFormatter.success("Client created successfully.", 201, { client }));
+      } catch (error) {
+         next(error);
+      }
+   }
+
+   /**
+    * Public self-service signup — no auth required.
+    */
+   async signup(req: Request, res: Response, next: NextFunction) {
+      try {
+         const result = await this.clientService.signup(req.body);
+         return res
+            .status(201)
+            .json(ResponseFormatter.success("Account created. Check your email to verify before signing in.", 201, result));
       } catch (error) {
          next(error);
       }
