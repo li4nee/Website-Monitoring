@@ -5,9 +5,11 @@ import { CreateClientDTOType } from "../dtos/createClient.dto";
 import { CreateClientUserDTOType } from "../dtos/createClientUser.dto";
 import { UpdateClientDTOType } from "../dtos/updateClient.dto";
 import { UpdateUserPermissionsDTOType } from "../dtos/updateUser.dto";
+import { SignupDTOType } from "../dtos/signup.dto";
 
 export interface IClientService {
    createClient(clientData: CreateClientDTOType, createdBy: string): Promise<Client>;
+   signup(data: SignupDTOType): Promise<{ client: Client; user: Omit<User, "password" | "trash" | "isActive"> }>;
    getClient(clientId: string, requestedBy: UserInsideAuthorizedRequest): Promise<Client>;
    listClients(
       requestedBy: UserInsideAuthorizedRequest,

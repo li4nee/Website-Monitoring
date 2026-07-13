@@ -54,6 +54,16 @@ export class MongoApiKeyRepo extends ApiKeyBaseRepo<ApiKeyWithId> {
       }
    }
 
+   async findKeyValueById(id: string): Promise<string | null> {
+      try {
+         const apiKey = await this.model.findById(id).select("keyValue");
+         return apiKey?.keyValue ?? null;
+      } catch (error) {
+         logger.error(`Error finding API key hash by id: ${id}`, { error });
+         throw error;
+      }
+   }
+
    async findByKeyValue(keyValue: string, isActive: boolean, checkExpiry: boolean): Promise<ApiKeyWithId | null> {
       try {
          const now = new Date();
@@ -84,6 +94,16 @@ export class MongoApiKeyRepo extends ApiKeyBaseRepo<ApiKeyWithId> {
          return apiKeys;
       } catch (error) {
          logger.error(`Error finding API keys by client ID: ${clientId}`, { error });
+         throw error;
+      }
+   }
+
+   async findKeyValuesByClientId(clientId: string, isActive: boolean): Promise<string[]> {
+      try {
+         const apiKeys = await this.model.find({ clientId: new Types.ObjectId(clientId), isActive }).select("keyValue");
+         return apiKeys.map((k) => k.keyValue);
+      } catch (error) {
+         logger.error(`Error finding API key hashes by client ID: ${clientId}`, { error });
          throw error;
       }
    }

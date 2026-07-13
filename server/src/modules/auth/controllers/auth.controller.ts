@@ -78,4 +78,44 @@ export class AuthController {
          next(error);
       }
    }
+
+   async resendVerificationEmail(req: Request, res: Response, next: NextFunction) {
+      try {
+         await this.authService.resendVerificationEmail(req.body.email);
+         return res
+            .status(200)
+            .json(ResponseFormatter.success("If that email exists and isn't verified yet, a new link has been sent.", 200, null));
+      } catch (error) {
+         next(error);
+      }
+   }
+
+   async verifyEmail(req: Request, res: Response, next: NextFunction) {
+      try {
+         await this.authService.verifyEmail(req.body.token);
+         return res.status(200).json(ResponseFormatter.success("Email verified successfully.", 200, null));
+      } catch (error) {
+         next(error);
+      }
+   }
+
+   async forgotPassword(req: Request, res: Response, next: NextFunction) {
+      try {
+         await this.authService.forgotPassword(req.body.email);
+         return res
+            .status(200)
+            .json(ResponseFormatter.success("If that email exists, a password reset link has been sent.", 200, null));
+      } catch (error) {
+         next(error);
+      }
+   }
+
+   async resetPassword(req: Request, res: Response, next: NextFunction) {
+      try {
+         await this.authService.resetPassword(req.body.token, req.body.newPassword);
+         return res.status(200).json(ResponseFormatter.success("Password reset successfully.", 200, null));
+      } catch (error) {
+         next(error);
+      }
+   }
 }

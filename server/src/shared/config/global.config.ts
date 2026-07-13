@@ -87,13 +87,12 @@ const envSchema = z.object({
    CORS_ALLOWED_ORIGINS: z.string().optional(),
 
    API_KEY_HMAC_SECRET: z.string().optional(),
+   API_KEY_CACHE_TTL_SECONDS: numeric,
 
-   SMTP_HOST: z.string().optional(),
-   SMTP_PORT: numeric,
-   SMTP_SECURE: booleanish,
-   SMTP_USER: z.string().optional(),
-   SMTP_PASS: z.string().optional(),
-   SMTP_DEFAULT_FROM: z.string().optional(),
+   RESEND_API_KEY: z.string().optional(),
+   RESEND_DEFAULT_FROM: z.string().optional(),
+
+   FRONTEND_URL: z.string().optional(),
 });
 
 const envSchemaWithProdChecks = envSchema.superRefine((data, ctx) => {
@@ -239,14 +238,15 @@ export const globalConfig = {
 
    apiKey: {
       hmacSecret: env.API_KEY_HMAC_SECRET || (isProduction ? "" : "dev-only-insecure-apikey-hmac-secret"),
+      // Kept deliberately short: bounds how long a revoked/deactivated key can
+      // keep working through the cache, and keeps memory use tiny on small hosts.
+      cacheTtlSeconds: parseInt(env.API_KEY_CACHE_TTL_SECONDS || "30", 10),
    },
 
    email: {
-      host: env.SMTP_HOST || "smtp.gmail.com",
-      port: parseInt(env.SMTP_PORT || "587", 10),
-      secure: env.SMTP_SECURE === "true",
-      user: env.SMTP_USER || "",
-      pass: env.SMTP_PASS || "",
-      defaultFrom: env.SMTP_DEFAULT_FROM || "alerts@servermonitoring.local",
+      resendApiKey: env.RESEND_API_KEY || "",
+      defaultFrom: env.RESEND_DEFAULT_FROM || "alerts@servermonitoring.local",
    },
+
+   frontendUrl: env.FRONTEND_URL || "http://localhost:3000",
 };
